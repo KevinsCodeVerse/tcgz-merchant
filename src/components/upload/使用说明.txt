@@ -1,0 +1,18 @@
+图片上传组件
+<upload />
+height,width  字符串，组件预览图片大小 默认'120px'
+selectImgPath  未选择图片时显示的图片 默认'120px'
+selectImgWidth  未选择图片时显示的图片宽度
+bigBox  是否显示图片放大按钮 默认true
+isMultiple  是否可多选图片 默认true
+limit_size  限制上传数量  默认不限制
+quality  图片压缩率 默认0.7
+limit  图片超过 (limit * 1024)kb 将进行压缩
+isCompress  是否开启图片压缩 默认true
+isChangeUpload  是否选择文件后触发上传 默认false
+action  单图上传路径 api地址
+param  上传参数名
+data  单图上传附带的参数
+success  单图上传成功后的回调函数
+
+没有返回图片组的方法，需命名$ref，通过$ref获取图片组

@@ -1,0 +1,7 @@
+.el-table th{
+	background-color: #f1f1f1 !important;
+}
+
+.el-image-viewer__wrapper .el-icon-circle-close{
+	color: white !important;
+}
