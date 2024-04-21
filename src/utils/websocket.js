@@ -8,11 +8,13 @@ var single = (function() {
 
 	// ( ip:端口号  或  域名 ) / 项目名 /ws/webSocketServer'); //连接服务端提供的通信接口，连接以后才可以订阅广播消息和个人消息
 	var url = envConfig.wsUrl
-
 	var unique = {
 		isConnection: false, // 判断是否连接成功
-
+		isOpen:false,
 		connection() {
+			if(!this.isOpen){
+				return;
+			}
 			if (!this.isConnection) {
 				// 建立连接对象
 				socket = new SockJS(url)

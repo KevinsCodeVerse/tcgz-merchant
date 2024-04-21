@@ -39,8 +39,9 @@ module.exports = {
 		hotOnly: true, // 热更新
 		proxy: {
 			"/api": {
-				target: "http://tcgz.mtfsoft.cn/api/", // 测试
+				// target: "http://tcgz.mtfsoft.cn/api/", // 测试
 				// target: "https://tcgz.dswang.com/api/", // 目标代理接口地址
+				target: "http://192.168.31.196:8080/",
 				secure: false,
 				changeOrigin: true, // 开启代理，在本地创建一个虚拟服务端
 				// ws: true, // 是否启用webso ckets 代理
