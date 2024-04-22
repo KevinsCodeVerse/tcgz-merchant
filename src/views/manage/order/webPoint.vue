@@ -1,7 +1,7 @@
-
 <template>
   <div id="">
     <el-button type="warning" @click="addDialog=true">新增网点</el-button>
+    <el-button type="success" @click="openAddress">设置默认发货地址</el-button>
     <el-table :data="list" v-loading="loading" stripe fixed="right">
       <el-table-column label="网点名称" prop="webPointName" align="center" width="200px"></el-table-column>
       <el-table-column label="快递公司编码" prop="courierCompany" align="center" min-width="180px">
@@ -9,22 +9,22 @@
       <el-table-column label="快递公司名称" prop="companyName" align="center"></el-table-column>
       <el-table-column label="月结号" prop="monthCode" align="center">
         <template slot-scope="scope">
-          {{ scope.row.monthCode?scope.row.monthCode:"--"}}
+          {{ scope.row.monthCode ? scope.row.monthCode : "--" }}
         </template>
       </el-table-column>
       <el-table-column label="客户编码" prop="customerName" align="center">
         <template slot-scope="scope">
-          {{ scope.row.customerName?scope.row.customerName:"--"}}
+          {{ scope.row.customerName ? scope.row.customerName : "--" }}
         </template>
       </el-table-column>
       <el-table-column label="客户密码" prop="customerPwd" align="center">
         <template slot-scope="scope">
-          {{ scope.row.customerPwd?scope.row.customerPwd:"--"}}
+          {{ scope.row.customerPwd ? scope.row.customerPwd : "--" }}
         </template>
       </el-table-column>
       <el-table-column label="网点编码" prop="sendSite" align="center">
         <template slot-scope="scope">
-          {{ scope.row.sendSite?scope.row.sendSite:"--"}}
+          {{ scope.row.sendSite ? scope.row.sendSite : "--" }}
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center">
@@ -74,10 +74,10 @@
           月结号、客户编码、客户密码、网点编码请根据实际网点给予的信息填写，至少填写一个
         </div>
         <el-form-item label="月结号">
-          <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode" ></el-input>
+          <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode"></el-input>
         </el-form-item>
         <el-form-item label="客户编码">
-          <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName" ></el-input>
+          <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName"></el-input>
         </el-form-item>
         <el-form-item label="客户密码">
           <el-input placeholder="请根据实际网点提供的客户密码填写(没有可不填)" v-model="addFrom.customerPwd"></el-input>
@@ -91,13 +91,45 @@
                 <el-button type="primary" @click="save()">确 定</el-button>
             </span>
     </el-dialog>
+
+
+    <!--默认发货地址弹框-->
+    <el-dialog title="编辑默认发货地址" :visible.sync="addressDialog" width="520px" center @close="closeDialog" :close-on-click-modal="false"
+    >
+      <el-form :model="addressFrom" :rules="addressRule" ref="addressFrom" label-width="120px" v-loading="addressFlag">
+        <el-form-item label="省/市/区" prop="select">
+          <el-cascader
+              v-model="addressFrom.select"
+              :options="options"
+              @change="changeAddress"></el-cascader>
+        </el-form-item>
+        <el-form-item label="详细地址" prop="address">
+          <el-input placeholder="详细地址（只填省市区后面的详细地址即可）" v-model="addressFrom.address"></el-input>
+        </el-form-item>
+        <el-form-item label="发货人名称" prop="name">
+          <el-input placeholder="请输入发货人信息" v-model="addressFrom.name"></el-input>
+        </el-form-item>
+        <el-form-item label="发货人联系方式" prop="phone" label-width="130px">
+          <el-input placeholder="请输入发货人联系方式" v-model="addressFrom.phone"></el-input>
+        </el-form-item>
+
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="saveAddress()">确 定</el-button>
+            </span>
+    </el-dialog>
   </div>
 </template>
 <script>
+import area from "@/utils/area3.js"
+
 export default {
   data() {
     return {
-      companyNameValid:true,
+      addressFlag: false,
+      options: this.transformAreaToOptions(area),
+      addressDialog: false,
+      companyNameValid: true,
       addDialog: false,
       params: {
         pageNo: 1,
@@ -109,6 +141,15 @@ export default {
       list: [],
       total: 0,
       loading: false,
+      addressFrom: {
+        address: "",
+        province: "",
+        city: "",
+        area: "",
+        phone: "",
+        name: "",
+        select:[]
+      },
       addFrom: {
         webPointName: "",
         companyName: "",
@@ -123,6 +164,24 @@ export default {
         id: '',
         express: '',
         expressNum: ''
+      },
+      addressRule: {
+        address: {
+          message: '请输入详细地址',
+          required: true,
+        },
+        phone: {
+          message: '请输入联系方式',
+          required: true,
+        },
+        name: {
+          message: '请输入名称',
+          required: true,
+        },
+        select: {
+          message: '请选择省市区',
+          required: true,
+        }
       },
       rule: {
         webPointName: {
@@ -167,15 +226,86 @@ export default {
   },
 
   methods: {
-    remove(id){
+
+    openAddress() {
+      this.addressDialog = true
+      this.addressFlag = true
+      //获取默认地址
+      this.$request.post({
+        url: '/mt/defaultAddress/info',
+        success: (result) => {
+          this.addressFlag=false
+          if(result!=="操作成功"){
+            this.addressFrom=result
+            this.addressFrom.select=[]
+            this.addressFrom.select[0]=result.province
+            this.addressFrom.select[1]=result.city
+            this.addressFrom.select[2]=result.area
+          }
+
+          console.log("add:",this.addressFrom)
+        },
+        catch: (e) => {
+
+        },
+        finally: (e) => {
+          console.log("最终")
+        }
+      });
+    },
+    transformAreaToOptions(area) {
+      const options = [];
+
+      // 遍历省份
+      for (const provinceCode in area.province_list) {
+        const province = {
+          label: area.province_list[provinceCode],
+          value: area.province_list[provinceCode],
+          children: []
+        };
+
+        // 遍历城市
+        for (const cityCode in area.city_list) {
+          if (cityCode.startsWith(provinceCode.substring(0, 2))) {
+            const city = {
+              label: area.city_list[cityCode],
+              value: area.city_list[cityCode],
+              children: []
+            };
+
+            // 遍历区县
+            for (const countyCode in area.county_list) {
+              if (countyCode.startsWith(cityCode.substring(0, 4))) {
+                const county = {
+                  label: area.county_list[countyCode],
+                  value: area.county_list[countyCode],
+                };
+                city.children.push(county);
+              }
+            }
+
+            province.children.push(city);
+          }
+        }
+
+        options.push(province);
+      }
+      return options;
+    },
+
+    changeAddress(e, value) {
+      console.log("地址：", value)
+    },
+    remove(id) {
       this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+
         this.$request.post({
           url: '/mt/dotCode/remove',
-          params: {id:id},
+          params: {id: id},
           success: (result) => {
             this.$message.success(result)
             this.search()
@@ -183,30 +313,58 @@ export default {
         });
       })
     },
-    openUpdate(row){
-      this.addDialog=true
-      this.addFrom=JSON.parse(JSON.stringify(row))
+    openUpdate(row) {
+      this.addDialog = true
+      this.addFrom = JSON.parse(JSON.stringify(row))
     },
-    save(){
-      this.$refs['addFrom'].validate((valid) => {
-        if(!valid){
-          return ;
+    saveAddress() {
+      this.$refs['addressFrom'].validate((valid) => {
+        if (!valid) {
+          return;
         }
-        if(!this.addFrom.monthCode&&!this.addFrom.customerName&&!this.addFrom.customerPwd){
+        if (this.addressFrom.select.length !== 3) {
+          this.$message.warning("请完整选择省市区")
+          return;
+        }
+        this.addressFrom.province = this.addressFrom.select[0]
+        this.addressFrom.city = this.addressFrom.select[1]
+        this.addressFrom.area = this.addressFrom.select[2]
+        delete(this.addressFrom.select)
+        delete(this.addressFrom.updateTime)
+        delete(this.addressFrom.createTime)
+        this.$request.post({
+          url: !this.addressFrom.id ? '/mt/defaultAddress/add' : "/mt/defaultAddress/edit",
+          params: this.addressFrom,
+          success: (result) => {
+            this.$message.success(result)
+            this.closeDialog();
+            this.search()
+            this.addressDialog=false
+          },
+        });
+      })
+    },
+    save() {
+      this.$refs['addFrom'].validate((valid) => {
+        if (!valid) {
+          return;
+        }
+        if (!this.addFrom.monthCode && !this.addFrom.customerName && !this.addFrom.customerPwd) {
           this.$message.warning(" 月结号、客户编码、客户密码请根据实际网点给予的信息填写，至少填写一个")
           return;
         }
-        if(this.companyNameValid){
+        if (this.companyNameValid) {
           this.$message.warning("快递公司名称错误，请检查后重新选择")
-          return ;
+          return;
         }
-        console.log("addFrom:",this.addFrom)
+        console.log("addFrom:", this.addFrom)
+
         this.$request.post({
-          url: !this.addFrom.id?'/mt/dotCode/add':"/mt/dotCode/edit",
+          url: !this.addFrom.id ? '/mt/dotCode/add' : "/mt/dotCode/edit",
           params: this.addFrom,
           success: (result) => {
             this.$message.success(result)
-            this.addDialog=false
+            this.addDialog = false
             this.closeDialog();
             this.search()
           },
@@ -225,10 +383,10 @@ export default {
         url: '/merchant/public/queryLikeByName',
         params: {keyword: queryString},
         success: (result) => {
-          if(result.length===0){
-            this.companyNameValid=true
-          }else {
-            this.companyNameValid=false
+          if (result.length === 0) {
+            this.companyNameValid = true
+          } else {
+            this.companyNameValid = false
           }
           var newArray = result.map((item) => {
             return {"value": item.courierCompany, "courierCompany": item.companyNumber};
@@ -278,7 +436,16 @@ export default {
         customerPwd: "",
         sendSite: ""
       }
-      this.companyNameValid=false
+      this.addressFrom = {
+        address: "",
+        province: "",
+        city: "",
+        area: "",
+        phone: "",
+        name: "",
+        select: []
+      }
+      this.companyNameValid = false
     },
     handleSizeChange(value) {
       this.params.pageSize = value;
