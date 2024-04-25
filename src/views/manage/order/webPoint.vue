@@ -27,6 +27,12 @@
           {{ scope.row.sendSite ? scope.row.sendSite : "--" }}
         </template>
       </el-table-column>
+      <el-table-column label="是否默认" prop="default" align="center" width="200px">
+        <template slot-scope="scope">
+          <el-tag type="success" v-if="scope.row.hasDefault===1">默认</el-tag>
+          <span v-else>--</span>
+        </template>
+      </el-table-column>
       <el-table-column label="创建时间" align="center">
         <template slot-scope="scope">
           {{ $moment(scope.row.createTime).format('Y-MM-DD HH:mm:ss') }}
@@ -70,6 +76,16 @@
         <el-form-item label="快递公司编码" prop="courierCompany">
           <el-input placeholder="" v-model="addFrom.courierCompany" disabled></el-input>
         </el-form-item>
+        <el-form-item label="是否默认网点" prop="hasDefault">
+          <el-switch
+              v-model="addFrom.hasDefault"
+              active-color="#13ce66"
+              inactive-color="#95a5a6"
+              :active-value="1"
+              :inactive-value="0"
+          >
+          </el-switch>
+        </el-form-item>
         <div style="color: red;margin: 20px;font-size: 12px">
           月结号、客户编码、客户密码、网点编码请根据实际网点给予的信息填写，至少填写一个
         </div>
@@ -112,7 +128,6 @@
         <el-form-item label="发货人联系方式" prop="phone" label-width="130px">
           <el-input placeholder="请输入发货人联系方式" v-model="addressFrom.phone"></el-input>
         </el-form-item>
-
       </el-form>
       <span slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="saveAddress()">确 定</el-button>
@@ -129,7 +144,6 @@ export default {
       addressFlag: false,
       options: this.transformAreaToOptions(area),
       addressDialog: false,
-      companyNameValid: true,
       addDialog: false,
       params: {
         pageNo: 1,
@@ -151,6 +165,7 @@ export default {
         select:[]
       },
       addFrom: {
+        hasDefault:0,
         webPointName: "",
         companyName: "",
         courierCompany: "",
@@ -353,11 +368,7 @@ export default {
           this.$message.warning(" 月结号、客户编码、客户密码请根据实际网点给予的信息填写，至少填写一个")
           return;
         }
-        if (this.companyNameValid) {
-          this.$message.warning("快递公司名称错误，请检查后重新选择")
-          return;
-        }
-        console.log("addFrom:", this.addFrom)
+
 
         this.$request.post({
           url: !this.addFrom.id ? '/mt/dotCode/add' : "/mt/dotCode/edit",
@@ -383,11 +394,6 @@ export default {
         url: '/merchant/public/queryLikeByName',
         params: {keyword: queryString},
         success: (result) => {
-          if (result.length === 0) {
-            this.companyNameValid = true
-          } else {
-            this.companyNameValid = false
-          }
           var newArray = result.map((item) => {
             return {"value": item.courierCompany, "courierCompany": item.companyNumber};
           });
@@ -434,7 +440,8 @@ export default {
         monthCode: "",
         customerName: "",
         customerPwd: "",
-        sendSite: ""
+        sendSite: "",
+        hasDefault:0
       }
       this.addressFrom = {
         address: "",
@@ -445,7 +452,6 @@ export default {
         name: "",
         select: []
       }
-      this.companyNameValid = false
     },
     handleSizeChange(value) {
       this.params.pageSize = value;

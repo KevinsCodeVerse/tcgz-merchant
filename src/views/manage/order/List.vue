@@ -1,10 +1,20 @@
 <template>
   <div id="">
-    <el-tabs v-model="tabStatus" @tab-click="clicktapItem()">
+    <el-tabs v-model="tabStatus" @tab-click="clicktapItem">
       <el-tab-pane label="全部" name="-10"></el-tab-pane>
       <el-tab-pane v-for="item in statusList" :label="item.name" :name="item.id.toString()" :key="item.id"></el-tab-pane>
     </el-tabs>
     <el-form :inline="true" size="medium">
+      <el-form-item >
+        <el-select v-model="params.shippingState" placeholder="物流状态" size="small" @change="changePrint">
+          <el-option
+              v-for="item in shippingStateS"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-input placeholder="请输入订单编号" v-model="params.id" clearable></el-input>
       </el-form-item>
@@ -27,9 +37,22 @@
       <el-form-item>
         <el-button type="warning" @click="reset">重置</el-button>
       </el-form-item>
+      <div>
+        <el-form-item v-if="showYYQJ">
+          <el-button type="success" @click="reset">预约取件</el-button>
+        </el-form-item>
+        <el-form-item v-if="showPLFH">
+          <el-button type="primary" @click="reset">批量发货</el-button>
+        </el-form-item>
+        <el-form-item v-if="showPLDD">
+          <el-button type="primary" @click="goPage(1)">批量打单（自动发货）</el-button>
+        </el-form-item>
+      </div>
     </el-form>
 
-    <el-table :data="list" v-loading="loading" stripe fixed="right">
+    <el-table :data="list" v-loading="loading" stripe fixed="right" @selection-change="handleSelectionChange">
+      <el-table-column label="勾选" prop="id" align="center" type="selection">
+      </el-table-column>
       <el-table-column label="订单编号" prop="id" align="center"></el-table-column>
       <el-table-column label="产品信息" prop="proId" align="center" min-width="180px">
         <template slot-scope="scope">
@@ -80,9 +103,9 @@
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
           <el-button class="mybtn" type="primary" size="small" @click="goDetail(scope.row.id)">详情</el-button>
-          <el-button size="small" type="success" v-if="scope.row.status == 10"
-                     @click="(deliveryData.id = scope.row.id), (deliveryShow = true)">发货
-          </el-button>
+          <!--          <el-button size="small" type="success" v-if="scope.row.status == 10"-->
+          <!--                     @click="(deliveryData.id = scope.row.id), (deliveryShow = true)">发货-->
+          <!--          </el-button>-->
         </template>
       </el-table-column>
     </el-table>
@@ -122,6 +145,11 @@
 export default {
   data() {
     return {
+      shippingStateS:[{"value":"0","label":"待揽件"},{"value":"1","label":"已揽收"},{"value":"2","label":"在途中"},{"value":"3","label":"已签收"},{"value":"4","label":"问题件"}],
+      showYYQJ:false,
+      showPLFH:false,
+      showPLDD:false,
+      orderList: [],
       params: {
         pageNo: 1,
         pageSize: 10,
@@ -129,7 +157,8 @@ export default {
         type: 1,
         id: '',
         status: '',
-        userName: ''
+        userName: '',
+        shippingState:''
       },
       tabStatus: '-10',
       list: [],
@@ -160,6 +189,7 @@ export default {
         {id: 0, name: '待支付'},
         {id: 1, name: '待使用'},
         {id: 10, name: '待发货'},
+        {id: -3, name: '待揽件'},
         {id: 11, name: '待收货'},
         {id: 2, name: '待评价'},
         {id: 3, name: '已评价'},
@@ -181,10 +211,14 @@ export default {
   },
 
   methods: {
+    handleSelectionChange(e) {
+      e = e.filter(item => item.status === 10);
+      this.orderList = e
+    },
     getShippingState(state) {
       switch (state) {
         case 0:
-          return "暂无轨迹信息";
+          return "暂无轨迹信息（待揽件）";
         case 1:
           return "已揽收";
         case 2:
@@ -200,7 +234,7 @@ export default {
         case -1:
           return "未打单"
         default:
-          return "状态异常"
+          return "--"
       }
     },
     // 重置
@@ -225,8 +259,35 @@ export default {
         }
       });
     },
+    goPage(type) {
+      if (type === 1) {
+        if (this.orderList.length === 0) {
+          this.$message.warning("请至少选择一个订单")
+          return;
+        }
+        this.orderList.forEach(item => {
+          if (item.status !== 10) {
+
+          }
+        })
+        localStorage.setItem("orderList", JSON.stringify(this.orderList))
+        this.$router.push({
+          path: '/order/bulkShipment',
+        });
+      }
+    },
     // 点击tap
-    clicktapItem() {
+    clicktapItem(e) {
+      this.showPLDD=false;
+      this.showYYQJ=false;
+      this.showPLFH=false;
+      this.showDY=false;
+      this.params.shippingState='';
+      if(e.index==="3"){
+        this.showPLDD=true;
+        this.showYYQJ=true;
+        this.showPLFH=true;
+      }
       this.search();
     },
     // 关闭 弹窗后
@@ -259,6 +320,10 @@ export default {
       this.loading = true;
       this.params.pageNo = pageNo;
       this.params.status = this.tabStatus == -10 ? '' : this.tabStatus;
+      if(this.params.status==="-3"){
+        this.params.status="";
+        this.params.shippingState="0";
+      }
       this.$request.post({
         url: '/mt/order/list',
         params: this.params,

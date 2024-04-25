@@ -89,6 +89,7 @@ export default {
 
     methods: {
         submitForm() {
+          console.log(123)
             this.$refs['login'].validate((valid) => {
                 if (valid) {
                     this.loading = true;
@@ -101,7 +102,6 @@ export default {
                             verifySign: this.params.verifySign
                         },
                         success:async (res) => {
-                            
                             sessionStorage.setItem('merchantToken', res.token);
                             sessionStorage.setItem('merchantName', res.name)
                             sessionStorage.setItem('id', res.id)
