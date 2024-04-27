@@ -280,6 +280,7 @@ export default {
           }
         })
         if(!flag){
+          this.orderList.forEach(item=>item.addressDetail="")
           localStorage.setItem("orderList", JSON.stringify(this.orderList))
           this.$router.push({
             path: '/order/bulkShipment?type='+type,
