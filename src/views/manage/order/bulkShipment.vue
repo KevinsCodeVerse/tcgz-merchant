@@ -1,5 +1,5 @@
 <template>
-  <div id="">
+  <div id="" v-loading="reqFlag">
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <span>公共参数</span>
@@ -82,6 +82,25 @@
           <el-form-item label="发货人联系方式" prop="phone" label-width="130px" size="mini">
             <el-input placeholder="请输入发货人联系方式" v-model="addFrom.phone"></el-input>
           </el-form-item>
+          <el-form-item label="是否需要快递公司上门取件" label-width="200px" size="mini">
+            <el-switch
+                v-model="addFrom.isNotice"
+                active-color="#13ce66"
+                inactive-color="#8c8c8c"
+                active-value="0"
+                inactive-value="1"
+            >
+            </el-switch>
+          </el-form-item>
+          <el-form-item label="预约上门取件时间" label-width="130px" size="mini" v-if="addFrom.isNotice==='0'">
+            <el-date-picker
+                v-model="addFrom.noticeTime"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="最早上门日期"
+                end-placeholder="最晚上门日期">
+            </el-date-picker>
+          </el-form-item>
         </el-form>
       </div>
     </el-card>
@@ -145,10 +164,10 @@
               <el-cascader
                   v-model="scope.row.select"
                   :options="options"
-                  :blur="resolvedAddress(scope.row)"></el-cascader>
+              ></el-cascader>
             </template>
           </el-table-column>
-          <el-table-column label="收件人详细地址"  align="center" width="200px">
+          <el-table-column label="收件人详细地址" align="center" width="200px">
             <template slot="header" slot-scope="scope">
               收件人详细地址<span style="color: red">*</span>
             </template>
@@ -160,13 +179,13 @@
               </el-input>
             </template>
           </el-table-column>
-          <el-table-column label="商品品类" prop="sendSite" align="center" width="150px">
+          <el-table-column label="商品品类" prop="sendSite" align="center" width="200px">
             <template slot="header" slot-scope="scope">
               商品品类<span style="color: red">*</span>
             </template>
             <template slot-scope="scope">
               <el-input
-                  placeholder="详细地址"
+                  placeholder="例:衣服/酒水/零食等"
                   v-model="scope.row.goodsName"
                   clearable>
               </el-input>
@@ -212,51 +231,53 @@
     </el-card>
     <div style="height: 40px"></div>
     <!-- 弹框 -->
-    <el-dialog title="网点信息" :visible.sync="addDialog" width="520px" center @close="closeDialog" :close-on-click-modal="false">
-      <el-form :model="addFrom" :rules="rule" ref="addFrom" label-width="120px">
-        <el-form-item label="网点名称" prop="webPointName">
-          <el-input placeholder="请输入线下网点名称" v-model="addFrom.webPointName"></el-input>
-        </el-form-item>
-        <el-form-item label="快递公司名称" prop="companyName">
-          <el-autocomplete
-              v-model="addFrom.companyName"
-              :fetch-suggestions="querySearchAsync"
-              placeholder="输入快递公司名称搜索"
-              @select="handleSelect"
-          ></el-autocomplete>
-        </el-form-item>
-        <el-form-item label="快递公司编码" prop="courierCompany">
-          <el-input placeholder="" v-model="addFrom.courierCompany" disabled></el-input>
-        </el-form-item>
-        <div style="color: red;margin: 20px;font-size: 12px">
-          月结号、客户编码、客户密码、网点编码请根据实际网点给予的信息填写，至少填写一个
-        </div>
-        <el-form-item label="月结号">
-          <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode"></el-input>
-        </el-form-item>
-        <el-form-item label="客户编码">
-          <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName"></el-input>
-        </el-form-item>
-        <el-form-item label="客户密码">
-          <el-input placeholder="请根据实际网点提供的客户密码填写(没有可不填)" v-model="addFrom.customerPwd"></el-input>
-        </el-form-item>
-        <el-form-item label="网点编码">
-          <el-input placeholder="请根据实际网点提供的网点编码填写(没有可不填)" v-model="addFrom.sendSite"></el-input>
-        </el-form-item>
-
-      </el-form>
+    <el-dialog title="发货结果通知" :visible.sync="addDialog" center @close="closeDialog" :close-on-click-modal="false">
+      <el-table :data="resultList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
+                max-height="700px">
+        <el-table-column label="产品信息" align="center" width="200px" fixed="left">
+          <template slot-scope="scope">
+            <div style="display: flex;align-items: center">
+              <div>
+                <img class="avatar" :src="scope.row.proInfo.avatar | fullPath" alt=""/>
+              </div>
+              <div>
+                <p>{{ scope.row.proInfo.title }}</p>
+                <p v-if="scope.row.proInfo.specName">{{ scope.row.proInfo.specName }}</p>
+                <p>单价：{{ scope.row.proInfo.unitPrice }}</p>
+                <p>数量：{{ scope.row.count }}</p>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="平台订单号" prop="orderNum" align="center" min-width="180px">
+        </el-table-column>
+        <el-table-column label="状态" prop="status" align="center" min-width="180px">
+          <template slot-scope="scope">
+            <span v-if="scope.row.status==='成功'" style="color: green;">{{ scope.row.status }}</span>
+            <span v-if="scope.row.status==='失败'" style="color: red;">{{ scope.row.status }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="原因" prop="reason" align="center" min-width="180px">
+          <template slot-scope="scope">
+            <span v-if="scope.row.status==='成功'" style="color: green;">{{ scope.row.reason }}</span>
+            <span v-if="scope.row.status==='失败'" style="color: red;">{{ scope.row.reason }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
       <span slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="save()">确 定</el-button>
-            </span>
+        <el-button @click="addDialog=false">关 闭</el-button>
+        <el-button type="primary" @click="$router.back()">返回订单列表</el-button>
+        <el-button type="primary" @click="save()">打印</el-button>
+      </span>
     </el-dialog>
     <div
         style="position: fixed;bottom: 1px;z-index: 10;">
       <div style="background-color: #F1F1F1;width: 100vw;height: 80px;display: flex;align-items: center;">
         <div style="margin-left: 30px">
-          <el-button @click="$router.back()">返 回</el-button>
+          <el-button @click="$router.push('/order/list')">返 回</el-button>
         </div>
         <div style="margin-left: 30px">
-          <el-button type="primary" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
+          <el-button type="primary" :disabled="reqFlag" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
         </div>
       </div>
     </div>
@@ -271,6 +292,8 @@ import area from "@/utils/area3.js"
 export default {
   data() {
     return {
+      resultList: [],
+      reqFlag: false,
       interFaceType: "",
       btnTitle: "",
       currency: [{"value": "CNY", "label": "人民币"}, {"value": "HKD", "label": "港币"}, {"value": "NTD", "label": "新台币"}, {
@@ -307,7 +330,11 @@ export default {
         transType: "",
         address: "",
         phone: "",
-        name: ""
+        name: "",
+        sendInfo: {},
+        isNotice: "1",
+        noticeTime: [],
+        templateSize: "0"
       },
 
       rule: {
@@ -386,8 +413,8 @@ export default {
     var orders = localStorage.getItem("orderList")
     if (orders) {
       this.orderList = JSON.parse(orders);
-      this.orderList.forEach(item=>item.addressDetail="")
       console.log("list:", this.orderList)
+      this.orderList.forEach(row => this.resolvedAddress(row))
     }
     // localStorage.removeItem("orderList")
   },
@@ -397,65 +424,115 @@ export default {
       if (this.interFaceType === "1") {
         console.log("公告参数:", this.addFrom)
         console.log("订单列表:", this.orderList)
+
         //校验公共参数
-        if(!this.addFrom.webPointId){
-          this.notifySplicing(1, "","网点未选择")
+        if (!this.addFrom.webPointId) {
+          this.notifySplicing(1, "", "网点未选择")
           return;
         }
-        if(!this.addFrom.expType){
-          this.notifySplicing(1, "","快递业务类型未选择")
+        if (!this.addFrom.expType) {
+          this.notifySplicing(1, "", "快递业务类型未选择")
           return;
         }
-        if(!this.addFrom.payType){
-          this.notifySplicing(1, "","运费支付类型未选择")
+        if (!this.addFrom.payType) {
+          this.notifySplicing(1, "", "运费支付类型未选择")
           return;
         }
-        if(!this.addFrom.select||this.addFrom.select.length!==3){
-          this.notifySplicing(1, "","省市区未选择")
+        if (!this.addFrom.select || this.addFrom.select.length !== 3) {
+          this.notifySplicing(1, "", "省市区未选择")
           return;
         }
-        if(!this.addFrom.address){
-          this.notifySplicing(1, "","详细地址未填写")
+        if (!this.addFrom.address) {
+          this.notifySplicing(1, "", "详细地址未填写")
           return;
         }
-        if(!this.addFrom.name){
-          this.notifySplicing(1, "","发货人名称未填写")
+        if (!this.addFrom.name) {
+          this.notifySplicing(1, "", "发货人名称未填写")
           return;
         }
-        if(!this.addFrom.phone){
-          this.notifySplicing(1, "","发货人联系方式未填写")
+        if (!this.addFrom.phone) {
+          this.notifySplicing(1, "", "发货人联系方式未填写")
+          return;
+        }
+        if (this.addFrom.isNotice === "0") {
+          if (this.addFrom.noticeTime.length < 2) {
+            this.notifySplicing(1, "", "预约上门取件时间范围未填写")
+          }
           return;
         }
         //校验订单参数
         for (const order of this.orderList) {
-          if(!order.consignee){
-            this.notifySplicing(2,order.id,"收件人姓名未填写")
+          if (!order.consignee) {
+            this.notifySplicing(2, order.id, "收件人姓名未填写")
             return;
           }
-          if(!order.phone){
-            this.notifySplicing(2,order.id,"收件人联系电话未填写")
+          if (!order.phone) {
+            this.notifySplicing(2, order.id, "收件人联系电话未填写")
             return;
           }
-          if(!order.select||order.select.length!==3){
-            this.notifySplicing(2,order.id,"收件人省市区未选择")
+          if (!order.select || order.select.length !== 3) {
+            this.notifySplicing(2, order.id, "收件人省市区未选择")
             return;
           }
-          if(!order.address){
-            this.notifySplicing(2,order.id,"收件人详细地址未填写")
+          if (!order.address) {
+            this.notifySplicing(2, order.id, "收件人详细地址未填写")
             return;
           }
-          if(!order.address){
-            this.notifySplicing(2,order.id,"收件人详细地址未填写")
+          if (!order.address) {
+            this.notifySplicing(2, order.id, "收件人详细地址未填写")
             return;
           }
-          if(!order.goodsName){
-            this.notifySplicing(2,order.id,"商品品类未填写")
+          if (!order.goodsName) {
+            this.notifySplicing(2, order.id, "商品品类未填写")
             return;
           }
-          console.log("订单:",order)
         }
+        this.$confirm('确定开始打单发货吗？请仔细核对所有数据，否则可能会打单失败, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          //校验通过，封装参数，请求打单
+          this.addFrom.sendInfo.province = this.addFrom.select[0]
+          this.addFrom.sendInfo.city = this.addFrom.select[0]
+          this.addFrom.sendInfo.area = this.addFrom.select[0]
+          this.addFrom.sendInfo.address = this.addFrom.address
+          this.addFrom.sendInfo.phone = this.addFrom.phone
+          this.addFrom.sendInfo.name = this.addFrom.name
+          this.addFrom.orderList = this.orderList
+          if(this.addFrom.isNotice==="0"){
+            this.addFrom.startTime=this.$moment(this.addFrom.noticeTime[0]).format('Y-MM-DD HH:mm:ss');
+            this.addFrom.endTime=this.$moment(this.addFrom.noticeTime[1]).format('Y-MM-DD HH:mm:ss');
+          }
+          console.log("提交参数:", this.addFrom)
+          this.reqFlag = true
+          this.$request.post({
+            url: '/mt/order/batchPrintTicket',
+            params: {params: JSON.stringify(this.addFrom)},
+            success: (result) => {
+              this.resultList = result
+              this.filterSuccessOrder()
+              this.addDialog = true
+            },
+            catch: (e) => {
+
+            },
+            finally: (e) => {
+              this.reqFlag = false
+            }
+          });
+        })
 
       }
+    },
+    //过滤成功的订单，从订单列表表格中剔除出去
+    filterSuccessOrder() {
+      var orderList = this.orderList.filter((item) => {
+        return this.resultList.some(result => {
+          return !(result.status === "成功" && item.id === result.orderNum);
+        });
+      });
+      this.orderList = orderList
     },
     notifySplicing(type, order, reason) {
       var message;
@@ -469,7 +546,6 @@ export default {
             reason +
             "</span>"
       }
-      //校验公共参数
       this.$notify({
         title: '提交参数错误',
         dangerouslyUseHTMLString: true,
@@ -480,15 +556,15 @@ export default {
     resolvedAddress(row) {
       var addressList = row.address.split("-")
       row.select = [];
-
+      row.addressDetail = "";
       if (addressList.length === 3) {
         //封装省市区
         row.select[0] = this.cityCorrection(addressList[0])
         row.select[1] = addressList[1]
         var addressDetail = addressList[2].split(" ")
         row.select[2] = addressDetail[0]
-        row.addressDetail = addressDetail[1];
-        console.log("row:",row)
+        row.addressDetail = addressDetail[1]
+        console.log("row:", row)
         return row;
       } else {
         this.$message.warning("订单号：" + row.id + "地址解析失败，请检查订单是否正确")
@@ -557,10 +633,7 @@ export default {
             this.addFrom.address = result.address
             this.addFrom.phone = result.phone
             this.addFrom.name = result.name
-
           }
-
-          console.log("add:", this.addFrom)
         },
         catch: (e) => {
 
@@ -577,7 +650,6 @@ export default {
         this.addFrom.jdExpType = 6
         this.addFrom.transType = e
       }
-
       if (obj.companyName === "京东快运") {
         this.addFrom.jdExpType = 1
         this.addFrom.transType = e
@@ -617,8 +689,7 @@ export default {
       //根据快递公司名字获取模板列表
       this.templates = []
       this.expTypes = []
-      this.addFrom.templateSize = "0"
-      this.addFrom.expType = ""
+
       for (let printTemplateKey in printTemplate) {
         if (obj.companyName === printTemplateKey) {
           this.templates = printTemplate[printTemplateKey];
@@ -650,7 +721,6 @@ export default {
         this.addFrom.expName = obj.expName
         this.addFrom.expType = "1"
       }
-      console.log("this.addFrom:", this.addFrom)
     },
     remove(id) {
       this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
@@ -737,16 +807,7 @@ export default {
     },
     // 关闭 弹窗后
     closeDialog() {
-      this.addFrom = {
-        webPointName: "",
-        companyName: "",
-        courierCompany: "",
-        monthCode: "",
-        customerName: "",
-        customerPwd: "",
-        sendSite: ""
-      }
-      this.companyNameValid = false
+      this.resultList = []
     },
     handleSizeChange(value) {
       this.params.pageSize = value;
