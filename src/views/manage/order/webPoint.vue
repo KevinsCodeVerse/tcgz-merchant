@@ -90,13 +90,20 @@
           月结号、客户编码、客户密码、网点编码请根据实际网点给予的信息填写，至少填写一个
         </div>
         <el-form-item label="月结号">
-          <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode"></el-input>
+          <el-tooltip class="item" effect="dark" content="快递网点提供的月结账号，如顺丰的月结号" placement="top-start">
+            <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode"></el-input>
+          </el-tooltip>
+
         </el-form-item>
         <el-form-item label="客户编码">
-          <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName"></el-input>
+          <el-tooltip class="item" effect="dark" content="快递网点提供，又称电子面单账号，客户账号，" placement="top-start">
+            <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName"></el-input>
+          </el-tooltip>
         </el-form-item>
         <el-form-item label="客户密码">
-          <el-input placeholder="请根据实际网点提供的客户密码填写(没有可不填)" v-model="addFrom.customerPwd"></el-input>
+          <el-tooltip class="item" effect="dark" content="快递网点提供，又称打单密钥" placement="top-start">
+            <el-input placeholder="请根据实际网点提供的客户密码填写(没有可不填)" v-model="addFrom.customerPwd"></el-input>
+          </el-tooltip>
         </el-form-item>
         <el-form-item label="网点编码">
           <el-input placeholder="请根据实际网点提供的网点编码填写(没有可不填)" v-model="addFrom.sendSite"></el-input>
@@ -129,9 +136,9 @@
           <el-input placeholder="请输入发货人联系方式" v-model="addressFrom.phone"></el-input>
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="saveAddress()">确 定</el-button>
-            </span>
+        <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="saveAddress()">确 定</el-button>
+       </span>
     </el-dialog>
   </div>
 </template>

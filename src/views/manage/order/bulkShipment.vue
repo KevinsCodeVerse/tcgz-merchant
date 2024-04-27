@@ -1,161 +1,216 @@
 <template>
   <div id="">
-    <div>
-      <el-form :model="addFrom" :rules="rule" ref="addFrom" label-width="120px">
-        <el-form-item label="选择网点" prop="webPointId">
-          <el-select v-model="addFrom.webPointId" placeholder="请选择" size="small" @change="getTemplate">
-            <el-option
-                v-for="item in webPoints"
-                :key="item.id"
-                :label="item.companyName+'('+item.webPointName+')'"
-                :value="item.id"
-            >
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="是否打印" prop="webPointName">
-          <el-select v-model="addFrom.hasPrint" placeholder="请选择" size="small" @change="changePrint">
-            <el-option
-                v-for="item in hasPrint"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <div style="display: flex" v-if="addFrom.hasPrint===1">
-          <div>
-            <el-form-item label="选择面单模板" prop="templateSize">
-              <el-select v-model="addFrom.templateSize" placeholder="请选择" size="small">
-                <el-option
-                    v-for="item in templates"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
-                </el-option>
-              </el-select>
-            </el-form-item>
+    <el-card class="box-card">
+      <div slot="header" class="clearfix">
+        <span>公共参数</span>
+      </div>
+      <div>
+        <el-form :model="addFrom" :rules="rule" ref="addFrom" label-width="120px">
+          <el-form-item label="选择网点" prop="webPointId">
+            <el-select v-model="addFrom.webPointId" placeholder="请选择" size="mini" @change="getTemplate">
+              <el-option
+                  v-for="item in webPoints"
+                  :key="item.id"
+                  :label="item.companyName+'('+item.webPointName+')'"
+                  :value="item.id"
+              >
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="是否打印" prop="webPointName">
+            <el-select v-model="addFrom.hasPrint" placeholder="请选择" size="mini" @change="changePrint">
+              <el-option
+                  v-for="item in hasPrint"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <div style="display: flex" v-if="addFrom.hasPrint===1">
+            <div>
+              <el-form-item label="选择面单模板" prop="templateSize">
+                <el-select v-model="addFrom.templateSize" placeholder="请选择" size="mini">
+                  <el-option
+                      v-for="item in templates"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </div>
+            <div
+                style="margin: 10px 0px 0px 10px"><a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/vpptucr1q5ahcxa7"
+                                                     target="_blank">模板规格样式参考
+            </a></div>
           </div>
-          <div
-              style="margin: 10px 0px 0px 10px"><a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/vpptucr1q5ahcxa7"
-                                                   target="_blank">模板规格样式参考
-          </a></div>
-        </div>
-        <el-form-item label="快递业务类型" prop="expType">
-          <el-select v-model="addFrom.expType" placeholder="请选择" size="small" @change="changeExpTypes">
-            <el-option
-                v-for="item in expTypes"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            >
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="运费支付方式" prop="payType">
-          <el-select v-model="addFrom.payType" placeholder="请选择" size="small">
-            <el-option
-                v-for="item in payTypes"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-            >
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="省/市/区" prop="select">
-          <el-cascader
-              v-model="addFrom.select"
-              :options="options"
-              @change="changeAddress"></el-cascader>
-        </el-form-item>
-        <el-form-item label="详细地址" prop="address">
-          <el-input placeholder="详细地址（只填省市区后面的详细地址即可）" v-model="addFrom.address"></el-input>
-        </el-form-item>
-        <el-form-item label="发货人名称" prop="name">
-          <el-input placeholder="请输入发货人信息" v-model="addFrom.name"></el-input>
-        </el-form-item>
-        <el-form-item label="发货人联系方式" prop="phone" label-width="130px">
-          <el-input placeholder="请输入发货人联系方式" v-model="addFrom.phone"></el-input>
-        </el-form-item>
-      </el-form>
-    </div>
-    <div style="height: 300px;overflow: auto;display: flex;justify-content: center">
-      <el-table :data="list" v-loading="loading" stripe  height="300px" style="max-width: 1700px; overflow-x: auto;" :row-height="10">
-        <el-table-column label="产品信息" prop="webPointName" align="center" width="200px" fixed="left">
+          <el-form-item label="快递业务类型" prop="expType">
+            <el-select v-model="addFrom.expType" placeholder="请选择" size="mini" @change="changeExpTypes">
+              <el-option
+                  v-for="item in expTypes"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+              >
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="运费支付方式" prop="payType">
+            <el-select v-model="addFrom.payType" placeholder="请选择" size="mini">
+              <el-option
+                  v-for="item in payTypes"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+              >
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="省/市/区" prop="select" size="mini">
+            <el-cascader
+                v-model="addFrom.select"
+                :options="options"
+                @change="changeAddress"></el-cascader>
+          </el-form-item>
+          <el-form-item label="详细地址" prop="address">
+            <el-input placeholder="详细地址（只填省市区后面的详细地址即可）" v-model="addFrom.address" size="mini"></el-input>
+          </el-form-item>
+          <el-form-item label="发货人名称" prop="name" size="mini">
+            <el-input placeholder="请输入发货人信息" v-model="addFrom.name"></el-input>
+          </el-form-item>
+          <el-form-item label="发货人联系方式" prop="phone" label-width="130px" size="mini">
+            <el-input placeholder="请输入发货人联系方式" v-model="addFrom.phone"></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-card>
+    <el-card style="margin-top: 20px">
+      <div slot="header" class="clearfix">
+        <span>订单列表</span>
+        <div style="color: #8c8c8c">下方带<span style="color: red">*</span>号的为必填内容，可将滚动条拖到底部横向滚动查看或编辑</div>
+      </div>
+      <div style="overflow: auto;display: flex;justify-content: center">
+        <el-table :data="orderList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
+                  max-height="700px">
+          <el-table-column label="产品信息" prop="webPointName" align="center" width="200px" fixed="left">
+            <template slot-scope="scope">
+              <div style="display: flex;align-items: center">
+                <div>
+                  <img class="avatar" :src="scope.row.proInfo.avatar | fullPath" alt=""/>
+                </div>
+                <div>
+                  <p>{{ scope.row.proInfo.title }}</p>
+                  <p v-if="scope.row.proInfo.specName">{{ scope.row.proInfo.specName }}</p>
+                  <p>单价：{{ scope.row.proInfo.unitPrice }}</p>
+                  <p>数量：{{ scope.row.count }}</p>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="平台订单号" prop="id" align="center" min-width="180px">
+          </el-table-column>
+          <el-table-column label="订单总额" prop="totalAmount" align="center">
 
-        </el-table-column>
-        <el-table-column label="平台订单号" prop="courierCompany" align="center" min-width="180px">
-        </el-table-column>
-        <el-table-column label="订单总额" prop="companyName" align="center"></el-table-column>
-        <el-table-column label="收件人" prop="monthCode" align="center">
-          <template slot="header" slot-scope="scope">
-            收件人<span style="color: red">*</span>
-          </template>
-          <template slot-scope="scope">
-            {{ scope.row.monthCode ? scope.row.monthCode : "--" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="收件人联系电话" prop="customerName" align="center" width="200px">
-          <template slot="header" slot-scope="scope">
-            收件人联系电话<span style="color: red">*</span>
-          </template>
-          <template slot-scope="scope">
-            {{ scope.row.customerName ? scope.row.customerName : "--" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="收件人省市区" prop="customerPwd" align="center" width="200px">
-          <template slot="header" slot-scope="scope">
-            收件人省市区<span style="color: red">*</span>
-          </template>
-          <template slot-scope="scope">
-            {{ scope.row.customerPwd ? scope.row.customerPwd : "--" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="收件人详细地址" prop="sendSite" align="center" width="200px">
-          <template slot="header" slot-scope="scope">
-            收件人详细地址<span style="color: red">*</span>
-          </template>
-          <template slot-scope="scope">
-            {{ scope.row.sendSite ? scope.row.sendSite : "--" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="商品品类" prop="sendSite" align="center" width="150px">
-          <template slot="header" slot-scope="scope">
-            商品品类<span style="color: red">*</span>
-          </template>
-          <template slot-scope="scope">
-            {{ scope.row.sendSite ? scope.row.sendSite : "--" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="第三方平台订单号(菜鸟)" prop="sendSite" align="center" width="200px">
-          <template slot-scope="scope">
-            {{ scope.row.sendSite ? scope.row.sendSite : "--" }}
-          </template>
-        </el-table-column>
-        <el-table-column label="货物币种（顺丰港澳台）" align="center">
-          <template slot-scope="scope">
-            {{ $moment(scope.row.createTime).format('Y-MM-DD HH:mm:ss') }}
-          </template>
-        </el-table-column>
-        <el-table-column label="申报价值（顺丰港澳台）" align="center">
-          <template slot-scope="scope">
-            {{ $moment(scope.row.createTime).format('Y-MM-DD HH:mm:ss') }}
-          </template>
-        </el-table-column>
-        <el-table-column label="备注" align="center"  width="200px" fixed="right">
-          <template slot-scope="scope">
-            <el-input
-                placeholder="请输入内容"
-                v-model="input"
-                clearable>
-            </el-input>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-
-
+          </el-table-column>
+          <el-table-column label="收件人" prop="monthCode" align="center" width="125px">
+            <template slot="header" slot-scope="scope">
+              收件人<span style="color: red">*</span>
+            </template>
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="姓名"
+                  v-model="scope.row.consignee"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="收件人联系电话" prop="customerName" align="center" width="160px">
+            <template slot="header" slot-scope="scope">
+              收件人联系电话<span style="color: red">*</span>
+            </template>
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="联系方式"
+                  v-model="scope.row.phone"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="收件人省市区" align="center" width="250px">
+            <template slot="header" slot-scope="scope">
+              收件人省市区<span style="color: red">*</span>
+            </template>
+            <template slot-scope="scope">
+              <el-cascader
+                  v-model="scope.row.select"
+                  :options="options"
+                  :blur="resolvedAddress(scope.row)"></el-cascader>
+            </template>
+          </el-table-column>
+          <el-table-column label="收件人详细地址"  align="center" width="200px">
+            <template slot="header" slot-scope="scope">
+              收件人详细地址<span style="color: red">*</span>
+            </template>
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="详细地址"
+                  v-model="scope.row.addressDetail"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="商品品类" prop="sendSite" align="center" width="150px">
+            <template slot="header" slot-scope="scope">
+              商品品类<span style="color: red">*</span>
+            </template>
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="详细地址"
+                  v-model="scope.row.goodsName"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="第三方平台订单号(菜鸟)" prop="sendSite" align="center" width="200px">
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="菜鸟订单号（非必填）"
+                  v-model="scope.row.cnOrder"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="货物币种（顺丰港澳台）" align="center" width="150px">
+            <template slot-scope="scope">
+              <el-cascader
+                  v-model="scope.row.currencyCode"
+                  :options="currency"
+              ></el-cascader>
+            </template>
+          </el-table-column>
+          <el-table-column label="申报价值（顺丰港澳台）" align="center" width="150px">
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="单位/元"
+                  v-model="scope.row.declaredValue"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="备注" align="center" width="200px" fixed="right">
+            <template slot-scope="scope">
+              <el-input
+                  placeholder="请输入内容"
+                  v-model="scope.row.orderRemark"
+                  clearable>
+              </el-input>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-card>
+    <div style="height: 40px"></div>
     <!-- 弹框 -->
     <el-dialog title="网点信息" :visible.sync="addDialog" width="520px" center @close="closeDialog" :close-on-click-modal="false">
       <el-form :model="addFrom" :rules="rule" ref="addFrom" label-width="120px">
@@ -194,7 +249,19 @@
                 <el-button type="primary" @click="save()">确 定</el-button>
             </span>
     </el-dialog>
+    <div
+        style="position: fixed;bottom: 1px;z-index: 10;">
+      <div style="background-color: #F1F1F1;width: 100vw;height: 80px;display: flex;align-items: center;">
+        <div style="margin-left: 30px">
+          <el-button @click="$router.back()">返 回</el-button>
+        </div>
+        <div style="margin-left: 30px">
+          <el-button type="primary" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
+        </div>
+      </div>
+    </div>
   </div>
+
 </template>
 <script>
 import printTemplate from "@/utils/printTemplate";
@@ -204,8 +271,18 @@ import area from "@/utils/area3.js"
 export default {
   data() {
     return {
+      interFaceType: "",
+      btnTitle: "",
+      currency: [{"value": "CNY", "label": "人民币"}, {"value": "HKD", "label": "港币"}, {"value": "NTD", "label": "新台币"}, {
+        "value": "MOP",
+        "label": "澳门元"
+      }],
+      orderList: [],
       options: this.transformAreaToOptions(area),
-      payTypes:[{"value":"1","label":"现结"},{"value":"2","label":"到付"},{"value":"3","label":"月结"},{"value":"4","label":"第三方付"}],
+      payTypes: [{"value": "1", "label": "现结"}, {"value": "2", "label": "到付"}, {"value": "3", "label": "月结"}, {
+        "value": "4",
+        "label": "第三方付"
+      }],
       expTypes: [],
       templates: [],
       webPoints: [],
@@ -226,11 +303,11 @@ export default {
         hasPrint: 0,
         webPointId: "",
         expType: "",
-        jdExpType:"",
-        transType:"",
-        address:"",
-        phone:"",
-        name:""
+        jdExpType: "",
+        transType: "",
+        address: "",
+        phone: "",
+        name: ""
       },
 
       rule: {
@@ -295,12 +372,135 @@ export default {
   created() {
   },
   mounted() {
+    const url = new URL(location.href);
+    const params = new URLSearchParams(url.search);
+    this.interFaceType = params.get('type')
+    if (this.interFaceType === "1") {
+      this.btnTitle = "提交打单（自动发货）"
+    }
+    if (this.interFaceType === "2") {
+      this.btnTitle = "预约取件（自动发货）"
+    }
     this.getList(1);
     this.getWebPoints();
-
+    var orders = localStorage.getItem("orderList")
+    if (orders) {
+      this.orderList = JSON.parse(orders);
+      this.orderList.forEach(item=>item.addressDetail="")
+      console.log("list:", this.orderList)
+    }
+    // localStorage.removeItem("orderList")
   },
 
   methods: {
+    batchPrintTicket() {
+      if (this.interFaceType === "1") {
+        console.log("公告参数:", this.addFrom)
+        console.log("订单列表:", this.orderList)
+        //校验公共参数
+        if(!this.addFrom.webPointId){
+          this.notifySplicing(1, "","网点未选择")
+          return;
+        }
+        if(!this.addFrom.expType){
+          this.notifySplicing(1, "","快递业务类型未选择")
+          return;
+        }
+        if(!this.addFrom.payType){
+          this.notifySplicing(1, "","运费支付类型未选择")
+          return;
+        }
+        if(!this.addFrom.select||this.addFrom.select.length!==3){
+          this.notifySplicing(1, "","省市区未选择")
+          return;
+        }
+        if(!this.addFrom.address){
+          this.notifySplicing(1, "","详细地址未填写")
+          return;
+        }
+        if(!this.addFrom.name){
+          this.notifySplicing(1, "","发货人名称未填写")
+          return;
+        }
+        if(!this.addFrom.phone){
+          this.notifySplicing(1, "","发货人联系方式未填写")
+          return;
+        }
+        //校验订单参数
+        for (const order of this.orderList) {
+          if(!order.consignee){
+            this.notifySplicing(2,order.id,"收件人姓名未填写")
+            return;
+          }
+          if(!order.phone){
+            this.notifySplicing(2,order.id,"收件人联系电话未填写")
+            return;
+          }
+          if(!order.select||order.select.length!==3){
+            this.notifySplicing(2,order.id,"收件人省市区未选择")
+            return;
+          }
+          if(!order.address){
+            this.notifySplicing(2,order.id,"收件人详细地址未填写")
+            return;
+          }
+          if(!order.address){
+            this.notifySplicing(2,order.id,"收件人详细地址未填写")
+            return;
+          }
+          if(!order.goodsName){
+            this.notifySplicing(2,order.id,"商品品类未填写")
+            return;
+          }
+          console.log("订单:",order)
+        }
+
+      }
+    },
+    notifySplicing(type, order, reason) {
+      var message;
+      if (type === 1) {
+        //公共参数出错
+        message = "<span>公共参数错误，原因:</span><span style=\"color:red\">" + reason + "</span>"
+      }
+      if (type === 2) {
+        //订单参数错误
+        message = "<span>订单列表参数错误<br/>订单号:</span><span style=\"color:red\">" + order + "</span>原因:</span><span style=\"color:red\">" +
+            reason +
+            "</span>"
+      }
+      //校验公共参数
+      this.$notify({
+        title: '提交参数错误',
+        dangerouslyUseHTMLString: true,
+        message: message,
+        duration: 10000
+      });
+    },
+    resolvedAddress(row) {
+      var addressList = row.address.split("-")
+      row.select = [];
+
+      if (addressList.length === 3) {
+        //封装省市区
+        row.select[0] = this.cityCorrection(addressList[0])
+        row.select[1] = addressList[1]
+        var addressDetail = addressList[2].split(" ")
+        row.select[2] = addressDetail[0]
+        row.addressDetail = addressDetail[1];
+        console.log("row:",row)
+        return row;
+      } else {
+        this.$message.warning("订单号：" + row.id + "地址解析失败，请检查订单是否正确")
+        return row;
+      }
+    },
+    cityCorrection(city) {
+      if (city === "北京市" || city === "重庆市" || city === "天津市" || city === "上海市") {
+        city = city.replace("市", "");
+      }
+      return city;
+    },
     changeAddress(e, value) {
       console.log("地址：", value)
     },
@@ -344,23 +544,23 @@ export default {
       this.getDefault()
       return options;
     },
-    getDefault(){
+    getDefault() {
       //获取默认地址
       this.$request.post({
         url: '/mt/defaultAddress/info',
         success: (result) => {
-          if(result!=="操作成功"){
-            this.addFrom.select=[]
-            this.addFrom.select[0]=result.province
-            this.addFrom.select[1]=result.city
-            this.addFrom.select[2]=result.area
-            this.addFrom.address=result.address
-            this.addFrom.phone=result.phone
-            this.addFrom.name=result.name
+          if (result !== "操作成功") {
+            this.addFrom.select = []
+            this.addFrom.select[0] = result.province
+            this.addFrom.select[1] = result.city
+            this.addFrom.select[2] = result.area
+            this.addFrom.address = result.address
+            this.addFrom.phone = result.phone
+            this.addFrom.name = result.name
 
           }
 
-          console.log("add:",this.addFrom)
+          console.log("add:", this.addFrom)
         },
         catch: (e) => {
 
@@ -370,17 +570,17 @@ export default {
         }
       });
     },
-    changeExpTypes(e){
-     //如果当前网点是京东快递，则将expType存到transType,然后expType定为6
+    changeExpTypes(e) {
+      //如果当前网点是京东快递，则将expType存到transType,然后expType定为6
       var obj = this.webPoints.find(item => item.id === this.addFrom.webPointId)
       if (obj.companyName === "京东快递") {
-        this.addFrom.jdExpType=6
-        this.addFrom.transType=e
+        this.addFrom.jdExpType = 6
+        this.addFrom.transType = e
       }
 
       if (obj.companyName === "京东快运") {
-        this.addFrom.jdExpType=1
-        this.addFrom.transType=e
+        this.addFrom.jdExpType = 1
+        this.addFrom.transType = e
       }
       console.log(this.addFrom)
     },
@@ -418,7 +618,7 @@ export default {
       this.templates = []
       this.expTypes = []
       this.addFrom.templateSize = "0"
-      this.addFrom.expType=""
+      this.addFrom.expType = ""
       for (let printTemplateKey in printTemplate) {
         if (obj.companyName === printTemplateKey) {
           this.templates = printTemplate[printTemplateKey];
@@ -447,10 +647,10 @@ export default {
 
       if (obj.companyName === "京东快运") {
         this.addFrom.transType = this.addFrom.expType
-        this.addFrom.expName=obj.expName
+        this.addFrom.expName = obj.expName
         this.addFrom.expType = "1"
       }
-      console.log("this.addFrom:",this.addFrom)
+      console.log("this.addFrom:", this.addFrom)
     },
     remove(id) {
       this.$confirm('此操作将删除该数据, 是否继续?', '提示', {

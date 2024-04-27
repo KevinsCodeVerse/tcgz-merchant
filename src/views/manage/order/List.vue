@@ -5,7 +5,7 @@
       <el-tab-pane v-for="item in statusList" :label="item.name" :name="item.id.toString()" :key="item.id"></el-tab-pane>
     </el-tabs>
     <el-form :inline="true" size="medium">
-      <el-form-item >
+      <el-form-item>
         <el-select v-model="params.shippingState" placeholder="物流状态" size="small" @change="changePrint">
           <el-option
               v-for="item in shippingStateS"
@@ -42,7 +42,7 @@
           <el-button type="success" @click="reset">预约取件</el-button>
         </el-form-item>
         <el-form-item v-if="showPLFH">
-          <el-button type="primary" @click="reset">批量发货</el-button>
+          <el-button type="primary" @click="goPage(2)">批量发货</el-button>
         </el-form-item>
         <el-form-item v-if="showPLDD">
           <el-button type="primary" @click="goPage(1)">批量打单（自动发货）</el-button>
@@ -145,10 +145,13 @@
 export default {
   data() {
     return {
-      shippingStateS:[{"value":"0","label":"待揽件"},{"value":"1","label":"已揽收"},{"value":"2","label":"在途中"},{"value":"3","label":"已签收"},{"value":"4","label":"问题件"}],
-      showYYQJ:false,
-      showPLFH:false,
-      showPLDD:false,
+      shippingStateS: [{"value": "0", "label": "待揽件"}, {"value": "1", "label": "已揽收"}, {"value": "2", "label": "在途中"}, {
+        "value": "3",
+        "label": "已签收"
+      }, {"value": "4", "label": "问题件"}],
+      showYYQJ: false,
+      showPLFH: false,
+      showPLDD: false,
       orderList: [],
       params: {
         pageNo: 1,
@@ -158,7 +161,7 @@ export default {
         id: '',
         status: '',
         userName: '',
-        shippingState:''
+        shippingState: ''
       },
       tabStatus: '-10',
       list: [],
@@ -265,28 +268,55 @@ export default {
           this.$message.warning("请至少选择一个订单")
           return;
         }
+        var flag=false;
         this.orderList.forEach(item => {
           if (item.status !== 10) {
-
+            this.$message.warning("订单:"+item.id+"状态错误，无法发货，请取消勾选")
+            this.flag=true
+          }
+          if (item.billingStatus !== 0) {
+            this.$message.warning("订单:"+item.id+"已打单，请取消勾选")
+            this.flag=true
           }
         })
-        localStorage.setItem("orderList", JSON.stringify(this.orderList))
-        this.$router.push({
-          path: '/order/bulkShipment',
-        });
+        if(!flag){
+          localStorage.setItem("orderList", JSON.stringify(this.orderList))
+          this.$router.push({
+            path: '/order/bulkShipment?type='+type,
+          });
+        }
+      }
+      if(type===2){
+        if (this.orderList.length === 0) {
+          this.$message.warning("请至少选择一个订单")
+          return;
+        }
+        var flag=false;
+        this.orderList.forEach(item => {
+          if (item.status !== 10) {
+            this.$message.warning("订单:"+item.id+"状态错误，无法发货，请取消勾选")
+            this.flag=true
+          }
+        })
+        if(!flag){
+          localStorage.setItem("orderList", JSON.stringify(this.orderList))
+          this.$router.push({
+            path: '/order/bulkShipment?type='+type,
+          });
+        }
       }
     },
     // 点击tap
     clicktapItem(e) {
-      this.showPLDD=false;
-      this.showYYQJ=false;
-      this.showPLFH=false;
-      this.showDY=false;
-      this.params.shippingState='';
-      if(e.index==="3"){
-        this.showPLDD=true;
-        this.showYYQJ=true;
-        this.showPLFH=true;
+      this.showPLDD = false;
+      this.showYYQJ = false;
+      this.showPLFH = false;
+      this.showDY = false;
+      this.params.shippingState = '';
+      if (e.index === "3") {
+        this.showPLDD = true;
+        this.showYYQJ = true;
+        this.showPLFH = true;
       }
       this.search();
     },
@@ -320,9 +350,9 @@ export default {
       this.loading = true;
       this.params.pageNo = pageNo;
       this.params.status = this.tabStatus == -10 ? '' : this.tabStatus;
-      if(this.params.status==="-3"){
-        this.params.status="";
-        this.params.shippingState="0";
+      if (this.params.status === "-3") {
+        this.params.status = "";
+        this.params.shippingState = "0";
       }
       this.$request.post({
         url: '/mt/order/list',
