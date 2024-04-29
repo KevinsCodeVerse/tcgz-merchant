@@ -274,7 +274,7 @@
         style="position: fixed;bottom: 1px;z-index: 10;">
       <div style="background-color: #F1F1F1;width: 100vw;height: 80px;display: flex;align-items: center;">
         <div style="margin-left: 30px">
-          <el-button @click="$router.push('/order/bulkCenter')">返 回</el-button>
+          <el-button @click="goBack">返 回</el-button>
         </div>
         <div style="margin-left: 30px">
           <el-button type="primary" :disabled="reqFlag" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
@@ -420,6 +420,9 @@ export default {
   },
 
   methods: {
+    goBack(){
+      this.$router.push('/order/bulkCenter')
+    },
     batchPrintTicket() {
       if (this.interFaceType === "1") {
         console.log("公告参数:", this.addFrom)

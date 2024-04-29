@@ -282,8 +282,10 @@ export default {
   },
   watch: {},
   created() {
+
   },
   mounted() {
+
     this.getList(1);
   },
 

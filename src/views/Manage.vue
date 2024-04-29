@@ -57,8 +57,7 @@ export default {
             ws.subscribe({
                 destination: '/queue/user/' + id + '/sendMessage',
                 result: (msg) => {
-                    console.log("123");
-                    console.log(msg);
+
                     var result = JSON.parse(msg.body).userOrder;
                     result.proInfo = JSON.parse(result.proInfo);
                     let html = `<div class="notify_html">
