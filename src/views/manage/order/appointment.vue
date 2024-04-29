@@ -3,30 +3,45 @@
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <span>公共参数</span>
+
       </div>
       <div>
         <el-form :model="addFrom" :rules="rule" ref="addFrom" label-width="120px">
-          <el-form-item label="选择网点" prop="webPointId">
-            <el-select v-model="addFrom.webPointId" placeholder="请选择" size="mini" @change="getTemplate">
-              <el-option
-                  v-for="item in webPoints"
-                  :key="item.id"
-                  :label="item.companyName+'('+item.webPointName+')'"
-                  :value="item.id"
-              >
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="是否打印" prop="webPointName">
-            <el-select v-model="addFrom.hasPrint" placeholder="请选择" size="mini" @change="changePrint">
-              <el-option
-                  v-for="item in hasPrint"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
+          <div style="display:flex;justify-content: space-between;align-items: center;position: relative">
+            <div>
+              <el-form-item label="快递公司" prop="companyName">
+                <el-autocomplete
+                    v-model="addFrom.companyName"
+                    :fetch-suggestions="querySearchAsync"
+                    placeholder="输入快递公司名称搜索"
+                    @select="handleSelect"
+                    size="mini"
+                ></el-autocomplete>
+              </el-form-item>
+            </div>
+            <div style="width: 300px;position: absolute;left: 400px;top: 5px">
+              <el-card class="box-card">
+                    <span style="font-size: 13px;color: red;font-weight: bold">
+          1.支持的快递公司：顺丰速运、中通快递、圆通速递、韵达速递、优速快递、EMS、宅急送、远成快运(YCWL)、天地华宇、运东西网、品骏快递、承诺达、申通快递、顺心捷达、一智通
+                      <br/>
+          2.支持的快递柜：丰巢快递柜(ShipperCode为FCBOX)
+                      <br/>
+          3.支持的同城配：闪送、大马鹿
+        </span>
+              </el-card>
+
+            </div>
+          </div>
+          <!--          <el-form-item label="是否打印" prop="webPointName">-->
+          <!--            <el-select v-model="addFrom.hasPrint" placeholder="请选择" size="mini" @change="changePrint">-->
+          <!--              <el-option-->
+          <!--                  v-for="item in hasPrint"-->
+          <!--                  :key="item.value"-->
+          <!--                  :label="item.label"-->
+          <!--                  :value="item.value">-->
+          <!--              </el-option>-->
+          <!--            </el-select>-->
+          <!--          </el-form-item>-->
           <div style="display: flex" v-if="addFrom.hasPrint===1">
             <div>
               <el-form-item label="选择面单模板" prop="templateSize">
@@ -82,17 +97,7 @@
           <el-form-item label="发货人联系方式" prop="phone" label-width="130px" size="mini">
             <el-input placeholder="请输入发货人联系方式" v-model="addFrom.phone"></el-input>
           </el-form-item>
-          <el-form-item label="是否需要快递公司上门取件" label-width="200px" size="mini">
-            <el-switch
-                v-model="addFrom.isNotice"
-                active-color="#13ce66"
-                inactive-color="#8c8c8c"
-                active-value="0"
-                inactive-value="1"
-            >
-            </el-switch>
-          </el-form-item>
-          <el-form-item label="预约上门取件时间" label-width="130px" size="mini" v-if="addFrom.isNotice==='0'">
+          <el-form-item label="预约上门取件时间" prop="isNotice" label-width="150px" size="mini">
             <el-date-picker
                 v-model="addFrom.noticeTime"
                 type="datetimerange"
@@ -274,10 +279,10 @@
         style="position: fixed;bottom: 1px;z-index: 10;">
       <div style="background-color: #F1F1F1;width: 100vw;height: 80px;display: flex;align-items: center;">
         <div style="margin-left: 30px">
-          <el-button @click="$router.push('/order/bulkCenter')">返 回</el-button>
+          <el-button @click="$router.push('/order/list')">返 回</el-button>
         </div>
         <div style="margin-left: 30px">
-          <el-button type="primary" :disabled="reqFlag" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
+          <el-button type="success" :disabled="reqFlag" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
         </div>
       </div>
     </div>
@@ -338,6 +343,10 @@ export default {
       },
 
       rule: {
+        isNotice: {
+          message: '请选择预约时间',
+          required: true,
+        },
         address: {
           message: '请填写详细地址',
           required: true,
@@ -403,13 +412,11 @@ export default {
     const params = new URLSearchParams(url.search);
     this.interFaceType = params.get('type')
     if (this.interFaceType === "1") {
-      this.btnTitle = "提交打单（自动发货）"
-    }
-    if (this.interFaceType === "2") {
       this.btnTitle = "预约取件（自动发货）"
     }
+
     this.getList(1);
-    this.getWebPoints();
+    // this.getWebPoints();
     var orders = localStorage.getItem("orderList")
     if (orders) {
       this.orderList = JSON.parse(orders);
@@ -420,14 +427,15 @@ export default {
   },
 
   methods: {
+
     batchPrintTicket() {
       if (this.interFaceType === "1") {
         console.log("公告参数:", this.addFrom)
         console.log("订单列表:", this.orderList)
 
         //校验公共参数
-        if (!this.addFrom.webPointId) {
-          this.notifySplicing(1, "", "网点未选择")
+        if (!this.addFrom.companyName) {
+          this.notifySplicing(1, "", "快递公司未选择")
           return;
         }
         if (!this.addFrom.expType) {
@@ -454,12 +462,13 @@ export default {
           this.notifySplicing(1, "", "发货人联系方式未填写")
           return;
         }
-        if (this.addFrom.isNotice === "0") {
-          if (this.addFrom.noticeTime.length < 2) {
-            this.notifySplicing(1, "", "预约上门取件时间范围未填写")
-          }
+
+        if (this.addFrom.noticeTime.length < 2) {
+          this.notifySplicing(1, "", "预约上门取件时间范围未填写")
           return;
         }
+
+
         //校验订单参数
         for (const order of this.orderList) {
           if (!order.consignee) {
@@ -487,12 +496,12 @@ export default {
             return;
           }
         }
-        this.$confirm('确定开始打单发货吗？请仔细核对所有数据，否则可能会打单失败, 是否继续?', '提示', {
+        this.$confirm('确定通知快递公司预约取件发货吗？请仔细核对所有数据，否则可能会预约失败, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          //校验通过，封装参数，请求打单
+          //校验通过，封装参数
           this.addFrom.sendInfo.province = this.addFrom.select[0]
           this.addFrom.sendInfo.city = this.addFrom.select[1]
           this.addFrom.sendInfo.area = this.addFrom.select[2]
@@ -500,11 +509,10 @@ export default {
           this.addFrom.sendInfo.phone = this.addFrom.phone
           this.addFrom.sendInfo.name = this.addFrom.name
           this.addFrom.orderList = this.orderList
-          if(this.addFrom.isNotice==="0"){
-            this.addFrom.startTime=this.$moment(this.addFrom.noticeTime[0]).format('Y-MM-DD HH:mm:ss');
-            this.addFrom.endTime=this.$moment(this.addFrom.noticeTime[1]).format('Y-MM-DD HH:mm:ss');
-          }
+            this.addFrom.startTime = this.$moment(this.addFrom.noticeTime[0]).format('Y-MM-DD HH:mm:ss');
+            this.addFrom.endTime = this.$moment(this.addFrom.noticeTime[1]).format('Y-MM-DD HH:mm:ss');
           console.log("提交参数:", this.addFrom)
+          return ;
           this.reqFlag = true
           this.$request.post({
             url: '/mt/order/batchPrintTicket',
@@ -645,12 +653,12 @@ export default {
     },
     changeExpTypes(e) {
       //如果当前网点是京东快递，则将expType存到transType,然后expType定为6
-      var obj = this.webPoints.find(item => item.id === this.addFrom.webPointId)
-      if (obj.companyName === "京东快递") {
+      // var obj = this.webPoints.find(item => item.id === this.addFrom.webPointId)
+      if (this.addFrom.companyName === "京东快递") {
         this.addFrom.jdExpType = 6
         this.addFrom.transType = e
       }
-      if (obj.companyName === "京东快运") {
+      if (this.addFrom.companyName === "京东快运") {
         this.addFrom.jdExpType = 1
         this.addFrom.transType = e
       }
@@ -684,26 +692,12 @@ export default {
         }
       });
     },
-    getTemplate(id) {
-      var obj = this.webPoints.find(item => item.id === id)
-      console.log("obj:",obj)
-      this.addFrom.courierCompany=obj.courierCompany
-      //根据快递公司名字获取模板列表
-      this.templates = []
+    getTemplate() {
+      //根据快递公司名字获取快递类型
       this.expTypes = []
 
-      for (let printTemplateKey in printTemplate) {
-        if (obj.companyName === printTemplateKey) {
-          this.templates = printTemplate[printTemplateKey];
-        }
-      }
-      if (this.templates.length === 0) {
-        this.templates = [{"value": "0", "label": "默认模板"}]
-        this.addFrom.templateSize = "默认模板"
-      }
-
       for (let expTypeKey in expType) {
-        if (obj.companyName === expTypeKey) {
+        if (this.addFrom.companyName === expTypeKey) {
           this.expTypes = expType[expTypeKey];
         }
       }
@@ -713,14 +707,13 @@ export default {
         this.addFrom.expType = "1"
       }
 
-      if (obj.companyName === "京东快递") {
+      if (this.addFrom.companyName === "京东快递") {
         this.addFrom.transType = this.addFrom.expType
         this.addFrom.expType = "6"
       }
 
-      if (obj.companyName === "京东快运") {
+      if (this.addFrom.companyName === "京东快运") {
         this.addFrom.transType = this.addFrom.expType
-        this.addFrom.expName = obj.expName
         this.addFrom.expType = "1"
       }
     },
@@ -771,8 +764,9 @@ export default {
       })
     },
     handleSelect(item) {
-      console.log("item:", item)
       this.addFrom.courierCompany = item.courierCompany
+      this.getTemplate()
+      console.log("this.addFrom:", this.addFrom)
     },
     querySearchAsync(queryString, cb) {
       if (!queryString) {

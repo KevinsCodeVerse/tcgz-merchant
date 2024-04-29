@@ -2,11 +2,24 @@
   <div id="">
     <el-tabs v-model="tabStatus" @tab-click="clicktapItem">
       <el-tab-pane label="全部" name="-10"></el-tab-pane>
-      <el-tab-pane v-for="item in statusList" :label="item.name" :name="item.id.toString()" :key="item.id"></el-tab-pane>
+      <el-tab-pane v-for="item in statusList" :label="item.name" :name="item.id.toString()" :key="item.id"
+                   v-if="params.type!=='3'"></el-tab-pane>
+      <el-tab-pane v-for="item in ptStatusList" :label="item.name" :name="item.id.toString()" :key="item.id"
+                   v-if="params.type==='3'"></el-tab-pane>
     </el-tabs>
     <el-form :inline="true" size="medium">
       <el-form-item>
-        <el-select v-model="params.shippingState" placeholder="物流状态" size="small" @change="changePrint">
+        <el-select v-model="params.type" placeholder="订单类型" size="small">
+          <el-option
+              v-for="item in orderType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select v-model="params.shippingState" placeholder="物流状态" size="small">
           <el-option
               v-for="item in shippingStateS"
               :key="item.value"
@@ -37,17 +50,17 @@
       <el-form-item>
         <el-button type="warning" @click="reset">重置</el-button>
       </el-form-item>
-<!--      <div>-->
-<!--        <el-form-item v-if="showYYQJ">-->
-<!--          <el-button type="success" @click="reset">预约取件</el-button>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item v-if="showPLFH">-->
-<!--          <el-button type="primary" @click="goPage(2)">批量发货</el-button>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item v-if="showPLDD">-->
-<!--          <el-button type="primary" @click="goPage(1)">批量打单（自动发货）</el-button>-->
-<!--        </el-form-item>-->
-<!--      </div>-->
+      <div>
+        <el-form-item v-if="showYYQJ">
+          <el-button type="success" @click="goPage(3)">预约取件（散客发货）</el-button>
+        </el-form-item>
+        <el-form-item v-if="showPLFH">
+          <el-button type="primary" @click="goPage(2)">批量发货</el-button>
+        </el-form-item>
+        <el-form-item v-if="showPLDD">
+          <el-button type="primary" @click="goPage(1)">批量打单（自动发货）</el-button>
+        </el-form-item>
+      </div>
     </el-form>
 
     <el-table :data="list" v-loading="loading" stripe fixed="right" @selection-change="handleSelectionChange">
@@ -100,9 +113,14 @@
           {{ $moment(scope.row.createTime).format('Y-MM-DD HH:mm:ss') }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center">
+      <el-table-column label="操作" align="center" width="150px">
         <template slot-scope="scope">
-          <el-button class="mybtn" type="primary" size="small" @click="goDetail(scope.row.id)">详情</el-button>
+          <div style="display: flex;flex-direction: column;justify-content: space-around;align-items: center;height: 180px">
+            <el-button type="primary" size="mini" @click="goDetail(scope.row.id)">详情</el-button>
+            <el-button type="danger" size="mini" @click="cancel(1,scope.row.id)" v-if="scope.row.billingStatus===1">取消电子面单</el-button>
+            <el-button type="danger" size="mini" @click="cancel(2,scope.row.id)" v-if="scope.row.prePickUp===1">取消预约取件</el-button>
+            <el-button type="danger" size="mini" @click="cancel(3,scope.row.id)" v-if="scope.row.status===11">取消发货</el-button>
+          </div>
           <!--          <el-button size="small" type="success" v-if="scope.row.status == 10"-->
           <!--                     @click="(deliveryData.id = scope.row.id), (deliveryShow = true)">发货-->
           <!--          </el-button>-->
@@ -123,21 +141,64 @@
     >
     </el-pagination>
 
-    <!-- 弹框 -->
-    <el-dialog title="发货" :visible.sync="deliveryShow" width="520px" center @close="closeDialog">
-      <el-form :model="deliveryData" :rules="deliveryRules" ref="refDelivery" label-width="120px">
-        <el-form-item label="物流公司名称" prop="express">
-          <el-input placeholder="请输入物流公司名称" v-model="deliveryData.express"></el-input>
-        </el-form-item>
-
-        <el-form-item label="物流单号" prop="expressNum">
-          <el-input placeholder="请输入物流单号" v-model="deliveryData.expressNum"></el-input>
-        </el-form-item>
-      </el-form>
+    <!-- 批量发货弹框 -->
+    <el-dialog title="批量发货" :visible.sync="deliveryShow" center @close="closeDialog" :close-on-click-modal="false" v-loading="batchDevFlag">
+      <el-table :data="orderList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
+                max-height="700px">
+        <el-table-column label="产品信息" align="center" width="200px">
+          <template slot-scope="scope">
+            <div style="display: flex;align-items: center;justify-content: center">
+              <div>
+                <img class="avatar" :src="scope.row.proInfo.avatar | fullPath" alt=""/>
+              </div>
+              <div>
+                <p>{{ scope.row.proInfo.title }}</p>
+                <p v-if="scope.row.proInfo.specName">{{ scope.row.proInfo.specName }}</p>
+                <p>单价：{{ scope.row.proInfo.unitPrice }}</p>
+                <p>数量：{{ scope.row.count }}</p>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="订单号" prop="id" align="center" min-width="180px">
+        </el-table-column>
+        <el-table-column label="快递公司" align="center" min-width="180px">
+          <template slot="header" slot-scope="scope">
+            快递公司<span style="color: red">*</span>
+          </template>
+          <template slot-scope="scope">
+            <el-autocomplete
+                v-model="scope.row.companyName"
+                :fetch-suggestions="querySearchAsync"
+                placeholder="输入快递公司名称搜索"
+                @select="(value) => handleSelect(scope.row, value)"
+                size="mini"
+            ></el-autocomplete>
+          </template>
+        </el-table-column>
+        <el-table-column label="快递单号" align="center" min-width="180px">
+          <template slot="header" slot-scope="scope">
+            快递单号<span style="color: red">*</span>
+          </template>
+          <template slot-scope="scope">
+            <el-input
+                placeholder="请输入快递单号"
+                v-model="scope.row.companyNum" size="mini"
+                clearable>
+            </el-input>
+          </template>
+        </el-table-column>
+        <el-table-column label="发货结果" prop="reason" align="center" min-width="180px">
+          <template slot-scope="scope">
+            <span v-if="scope.row.status==='成功'" style="color: green;">{{ scope.row.reason }}</span>
+            <span v-if="scope.row.status==='失败'" style="color: red;">{{ scope.row.reason }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
       <span slot="footer" class="dialog-footer">
-                <el-button @click="deliveryShow = false">取 消</el-button>
-                <el-button type="primary" @click="doDelivery()">确 定</el-button>
-            </span>
+        <el-button @click="closeDialog">关 闭</el-button>
+        <el-button @click="batchDev" type="primary">提 交</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -145,6 +206,8 @@
 export default {
   data() {
     return {
+      batchDevFlag: false,
+      orderType: [{"value": "3", "label": "拼团订单"}, {"value": "1", "label": "普通订单"}, {"value": "2", "label": "秒杀订单"}],
       shippingStateS: [{"value": "0", "label": "待揽件"}, {"value": "1", "label": "已揽收"}, {"value": "2", "label": "在途中"}, {
         "value": "3",
         "label": "已签收"
@@ -157,7 +220,7 @@ export default {
         pageNo: 1,
         pageSize: 10,
         isCount: true,
-        type: 1,
+        type: "1",
         id: '',
         status: '',
         userName: '',
@@ -192,7 +255,18 @@ export default {
         {id: 0, name: '待支付'},
         {id: 1, name: '待使用'},
         {id: 10, name: '待发货'},
-        {id: -3, name: '待揽件'},
+        // {id: -3, name: '待揽件'},
+        {id: 11, name: '待收货'},
+        {id: 2, name: '待评价'},
+        {id: 3, name: '已评价'},
+        {id: -1, name: '已退款'},
+        {id: -2, name: '已取消'}
+      ],
+      ptStatusList: [
+        {id: 0, name: '待支付'},
+        {id: 5, name: '待拼团'},
+        {id: 1, name: '待使用'},
+        {id: 10, name: '待发货'},
         {id: 11, name: '待收货'},
         {id: 2, name: '待评价'},
         {id: 3, name: '已评价'},
@@ -214,6 +288,76 @@ export default {
   },
 
   methods: {
+    batchDev() {
+      console.log("list:", this.orderList)
+      for (let order of this.orderList) {
+        if (!order.companyName) {
+          this.$message.error("订单:" + order.id + "未选择快递公司")
+          return;
+        }
+        if (!order.courierCompany) {
+          this.$message.error("订单:" + order.id + "未选择快递公司")
+          return;
+        }
+        if (!order.companyNum) {
+          this.$message.error("订单:" + order.id + "未输入快递单号")
+          return;
+        }
+      }
+      this.$confirm('此操作将对选中订单进行发货并订阅物流轨迹操作,请仔细核对快递单号，否则可能导致订阅失败，是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.batchDevFlag = true;
+        this.$request.post({
+          url: '/mt/order/batchDelivery',
+          params: {infos: JSON.stringify(this.orderList)},
+          success: (result) => {
+            // this.$message.success(result)
+            this.orderList=result
+          },
+          catch: (e) => {
+
+          },
+          finally: (e) => {
+            this.batchDevFlag = false
+          }
+        });
+      })
+    },
+    querySearchAsync(queryString, cb) {
+      if (!queryString) {
+        queryString = "顺丰"
+      }
+      this.$request.post({
+        url: '/merchant/public/queryLikeByName',
+        params: {keyword: queryString},
+        success: (result) => {
+          if (result.length === 0) {
+            this.companyNameValid = true
+          } else {
+            this.companyNameValid = false
+          }
+          var newArray = result.map((item) => {
+            return {"value": item.courierCompany, "courierCompany": item.companyNumber};
+          });
+          cb(newArray)
+        },
+      });
+    },
+    handleSelect(row, e) {
+      row.courierCompany = e.courierCompany
+    },
+    cancel(type, id) {
+      var title = type === 1 ? "取消电子面单" : type === 2 ? "取消预约取件" : "取消发货"
+      this.$confirm('此操作将' + title + "，是否继续操作？", '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+      })
+    },
     handleSelectionChange(e) {
       e = e.filter(item => item.status === 10);
       this.orderList = e
@@ -246,7 +390,7 @@ export default {
         pageNo: 1,
         pageSize: 10,
         isCount: true,
-        type: 1,
+        type: "1",
         id: '',
         status: '',
         userName: ''
@@ -263,46 +407,75 @@ export default {
       });
     },
     goPage(type) {
+      if (this.orderList.length === 0) {
+        this.$message.warning("请至少选择一个订单")
+        return;
+      }
       if (type === 1) {
-        if (this.orderList.length === 0) {
-          this.$message.warning("请至少选择一个订单")
-          return;
-        }
-        var flag=false;
+        var flag = false;
         this.orderList.forEach(item => {
+          if (item.carriage !== 2) {
+            this.$message.warning("订单:" + item.id + "状态非快递物流单，无法操作，请取消勾选")
+            this.flag = true
+          }
           if (item.status !== 10) {
-            this.$message.warning("订单:"+item.id+"状态错误，无法发货，请取消勾选")
-            this.flag=true
+            this.$message.warning("订单:" + item.id + "状态错误，无法发货，请取消勾选")
+            this.flag = true
           }
           if (item.billingStatus !== 0) {
-            this.$message.warning("订单:"+item.id+"已打单，请取消勾选")
-            this.flag=true
+            this.$message.warning("订单:" + item.id + "已打单，请取消勾选")
+            this.flag = true
           }
         })
-        if(!flag){
-          this.orderList.forEach(item=>item.addressDetail="")
+        if (!flag) {
+          this.orderList.forEach(item => item.addressDetail = "")
           localStorage.setItem("orderList", JSON.stringify(this.orderList))
           this.$router.push({
-            path: '/order/bulkShipment?type='+type,
+            path: '/order/bulkShipment?type=' + type,
           });
         }
       }
-      if(type===2){
-        if (this.orderList.length === 0) {
-          this.$message.warning("请至少选择一个订单")
-          return;
-        }
-        var flag=false;
+      if (type === 2) {
+        var flag = false;
         this.orderList.forEach(item => {
+          if (item.carriage !== 2) {
+            this.$message.warning("订单:" + item.id + "状态非快递物流单，无法操作，请取消勾选")
+            this.flag = true
+          }
           if (item.status !== 10) {
-            this.$message.warning("订单:"+item.id+"状态错误，无法发货，请取消勾选")
-            this.flag=true
+            this.$message.warning("订单:" + item.id + "状态错误，无法发货，请取消勾选")
+            this.flag = true
           }
         })
-        if(!flag){
+        if (!flag) {
+          this.orderList.forEach(item => {
+            item.expressNum = ""
+            item.express = ""
+          })
+          this.deliveryShow = true;
+          console.log("订单列表:", this.orderList)
+        }
+      }
+      if (type === 3) {
+        var flag = false;
+        this.orderList.forEach(item => {
+          if (item.carriage !== 2) {
+            this.$message.warning("订单:" + item.id + "状态非快递物流单，无法操作，请取消勾选")
+            this.flag = true
+          }
+          if (item.prePickUp === 1) {
+            this.$message.warning("订单:" + item.id + "已预约，请取消勾选")
+            this.flag = true
+          }
+          if (item.status !== 10) {
+            this.$message.warning("订单:" + item.id + "状态错误，无法预约取件，请取消勾选")
+            this.flag = true
+          }
+        })
+        if (!flag) {
           localStorage.setItem("orderList", JSON.stringify(this.orderList))
           this.$router.push({
-            path: '/order/bulkShipment?type='+type,
+            path: '/order/appointment?type=' + 1,
           });
         }
       }
@@ -323,11 +496,9 @@ export default {
     },
     // 关闭 弹窗后
     closeDialog() {
-      this.deliveryData = {
-        id: '',
-        express: '',
-        expressNum: ''
-      };
+      this.deliveryShow=false;
+      this.search()
+      // this.orderList=[]
     },
     handleSizeChange(value) {
       this.params.pageSize = value;
