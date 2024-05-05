@@ -52,13 +52,20 @@
       </el-form-item>
       <div>
         <el-form-item v-if="showYYQJ">
-          <el-button type="success" @click="goPage(3)">预约取件（散客发货）</el-button>
+          <el-tooltip class="item" effect="dark" content="一次性预约多个包裹，快递将准时取件" placement="top-start">
+            <el-button type="success" @click="goPage(3)">预约取件</el-button>
+          </el-tooltip>
+
         </el-form-item>
         <el-form-item v-if="showPLFH">
-          <el-button type="primary" @click="goPage(2)">批量发货</el-button>
+          <el-tooltip class="item" effect="dark" content="自行投递多件包裹，适合零散订单" placement="top-start">
+            <el-button type="primary" @click="goPage(2)">商家自寄</el-button>
+          </el-tooltip>
         </el-form-item>
         <el-form-item v-if="showPLDD">
-          <el-button type="primary" @click="goPage(1)">批量打单（自动发货）</el-button>
+          <el-tooltip class="item" effect="dark" content="一键生成多张电子面单，提高发货效率" placement="top-start">
+            <el-button type="warning" @click="goPage(1)">打单发货</el-button>
+          </el-tooltip>
         </el-form-item>
       </div>
     </el-form>
@@ -85,7 +92,7 @@
           <el-tag type="success" size="mini" v-else>快递</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="快递单状态" prop="shippingState" align="center">
+      <el-table-column label="物流状态" prop="shippingState" align="center">
         <template slot-scope="scope">
           {{ getShippingState(scope.row.shippingState) }}
         </template>
@@ -99,6 +106,11 @@
       <el-table-column label="订单状态" align="center">
         <template slot-scope="scope">
           <span :class="statusStr(scope.row.status).class">{{ statusStr(scope.row.status).name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="物流下单模式" align="center" width="150px">
+        <template slot-scope="scope">
+          {{ getKdnType(scope.row.kdnType) }}
         </template>
       </el-table-column>
       <el-table-column label="用户备注" prop="userRemark" show-overflow-tooltip align="center"></el-table-column>
@@ -117,9 +129,19 @@
         <template slot-scope="scope">
           <div style="display: flex;flex-direction: column;justify-content: space-around;align-items: center;height: 180px">
             <el-button type="primary" size="mini" @click="goDetail(scope.row.id)">详情</el-button>
-            <el-button type="danger" size="mini" @click="cancel(1,scope.row.id)" v-if="scope.row.billingStatus===1">取消电子面单</el-button>
-            <el-button type="danger" size="mini" @click="cancel(2,scope.row.id)" v-if="scope.row.prePickUp===1">取消预约取件</el-button>
-            <el-button type="danger" size="mini" @click="cancel(3,scope.row.id)" v-if="scope.row.status===11">取消发货</el-button>
+            <el-button type="danger" size="mini" @click="manuallyCancelOrder(scope.row.id)">
+              取消电子面单
+            </el-button>
+            <el-button type="danger" size="mini" @click="cancel(1,scope.row.id)" v-if="scope.row.status===11&&scope.row.billingStatus===1">
+              取消发货
+            </el-button>
+            <el-button type="danger" size="mini" @click="cancel(2,scope.row.id)" v-if="scope.row.status===11&&scope.row.prePickUp===1">
+              取消发货
+            </el-button>
+            <el-button type="danger" size="mini" @click="cancel(3,scope.row.id)"
+                       v-if="scope.row.status===11&&scope.row.prePickUp===0&&scope.row.billingStatus===0">
+              取消发货
+            </el-button>
           </div>
           <!--          <el-button size="small" type="success" v-if="scope.row.status == 10"-->
           <!--                     @click="(deliveryData.id = scope.row.id), (deliveryShow = true)">发货-->
@@ -212,9 +234,9 @@ export default {
         "value": "3",
         "label": "已签收"
       }, {"value": "4", "label": "问题件"}],
-      showYYQJ: false,
-      showPLFH: false,
-      showPLDD: false,
+      showYYQJ: true,
+      showPLFH: true,
+      showPLDD: true,
       orderList: [],
       params: {
         pageNo: 1,
@@ -226,7 +248,7 @@ export default {
         userName: '',
         shippingState: ''
       },
-      tabStatus: '-10',
+      tabStatus: '10',
       list: [],
       total: 0,
       loading: false,
@@ -290,8 +312,24 @@ export default {
   },
 
   methods: {
+    manuallyCancelOrder(id) {
+
+    },
+    getKdnType(type) {
+      switch (type) {
+        case 0:
+          return "无"
+        case 1:
+          return "商家自寄"
+        case 2:
+          return "打单发货"
+        case 3:
+          return "预约取件"
+        default:
+          return "异常"
+      }
+    },
     batchDev() {
-      console.log("list:", this.orderList)
       for (let order of this.orderList) {
         if (!order.companyName) {
           this.$message.error("订单:" + order.id + "未选择快递公司")
@@ -317,7 +355,7 @@ export default {
           params: {infos: JSON.stringify(this.orderList)},
           success: (result) => {
             // this.$message.success(result)
-            this.orderList=result
+            this.orderList = result
           },
           catch: (e) => {
 
@@ -327,6 +365,23 @@ export default {
           }
         });
       })
+    },
+    manuallyCancelThree(id){
+      this.$request.post({
+        url: '/merchant/public/queryLikeByName',
+        params: {keyword: queryString},
+        success: (result) => {
+          if (result.length === 0) {
+            this.companyNameValid = true
+          } else {
+            this.companyNameValid = false
+          }
+          var newArray = result.map((item) => {
+            return {"value": item.courierCompany, "courierCompany": item.companyNumber};
+          });
+          cb(newArray)
+        },
+      });
     },
     querySearchAsync(queryString, cb) {
       if (!queryString) {
@@ -352,12 +407,28 @@ export default {
       row.courierCompany = e.courierCompany
     },
     cancel(type, id) {
-      var title = type === 1 ? "取消电子面单" : type === 2 ? "取消预约取件" : "取消发货"
+      var title = type === 1 ? "取消发货同时取消电子面单" : type === 2 ? "取消发货同时取消预约取件" : "取消发货"
       this.$confirm('此操作将' + title + "，是否继续操作？", '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+        this.$request.post({
+          url: '/mt/order/cancelDelivery',
+          params: {
+            orderId: id
+          },
+          success: (result) => {
+            this.$message.success(result)
+            this.search();
+          },
+          catch: (e) => {
+
+          },
+          finally: (e) => {
+
+          }
+        });
       })
     },
     handleSelectionChange(e) {
@@ -418,15 +489,15 @@ export default {
         this.orderList.forEach(item => {
           if (item.carriage !== 2) {
             this.$message.warning("订单:" + item.id + "状态非快递物流单，无法操作，请取消勾选")
-            this.flag = true
+            flag = true
           }
           if (item.status !== 10) {
             this.$message.warning("订单:" + item.id + "状态错误，无法发货，请取消勾选")
-            this.flag = true
+            flag = true
           }
           if (item.billingStatus !== 0) {
             this.$message.warning("订单:" + item.id + "已打单，请取消勾选")
-            this.flag = true
+            flag = true
           }
         })
         if (!flag) {
@@ -442,11 +513,11 @@ export default {
         this.orderList.forEach(item => {
           if (item.carriage !== 2) {
             this.$message.warning("订单:" + item.id + "状态非快递物流单，无法操作，请取消勾选")
-            this.flag = true
+            flag = true
           }
           if (item.status !== 10) {
             this.$message.warning("订单:" + item.id + "状态错误，无法发货，请取消勾选")
-            this.flag = true
+            flag = true
           }
         })
         if (!flag) {
@@ -463,15 +534,15 @@ export default {
         this.orderList.forEach(item => {
           if (item.carriage !== 2) {
             this.$message.warning("订单:" + item.id + "状态非快递物流单，无法操作，请取消勾选")
-            this.flag = true
+            flag = true
           }
           if (item.prePickUp === 1) {
             this.$message.warning("订单:" + item.id + "已预约，请取消勾选")
-            this.flag = true
+            flag = true
           }
           if (item.status !== 10) {
             this.$message.warning("订单:" + item.id + "状态错误，无法预约取件，请取消勾选")
-            this.flag = true
+            flag = true
           }
         })
         if (!flag) {
@@ -498,7 +569,7 @@ export default {
     },
     // 关闭 弹窗后
     closeDialog() {
-      this.deliveryShow=false;
+      this.deliveryShow = false;
       this.search()
       // this.orderList=[]
     },

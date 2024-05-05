@@ -271,7 +271,7 @@
       </el-table>
       <span slot="footer" class="dialog-footer">
         <el-button @click="addDialog=false">关 闭</el-button>
-        <el-button type="primary" @click="$router.back()">返回订单列表</el-button>
+        <el-button type="primary" @click="$router.push('/order/bulkCenter')">返回订单列表</el-button>
         <el-button type="primary" @click="save()">打印</el-button>
       </span>
     </el-dialog>
@@ -279,7 +279,7 @@
         style="position: fixed;bottom: 1px;z-index: 10;">
       <div style="background-color: #F1F1F1;width: 100vw;height: 80px;display: flex;align-items: center;">
         <div style="margin-left: 30px">
-          <el-button @click="$router.push('/order/list')">返 回</el-button>
+          <el-button @click="$router.push('/order/bulkCenter')">返 回</el-button>
         </div>
         <div style="margin-left: 30px">
           <el-button type="success" :disabled="reqFlag" @click="batchPrintTicket()">{{ btnTitle }}</el-button>
@@ -512,10 +512,9 @@ export default {
             this.addFrom.startTime = this.$moment(this.addFrom.noticeTime[0]).format('Y-MM-DD HH:mm:ss');
             this.addFrom.endTime = this.$moment(this.addFrom.noticeTime[1]).format('Y-MM-DD HH:mm:ss');
           console.log("提交参数:", this.addFrom)
-          return ;
           this.reqFlag = true
           this.$request.post({
-            url: '/mt/order/batchPrintTicket',
+            url: '/mt/order/agreedPickup',
             params: {params: JSON.stringify(this.addFrom)},
             success: (result) => {
               this.resultList = result
