@@ -233,7 +233,9 @@
     <!-- 弹框 -->
     <el-dialog title="发货结果通知" :visible.sync="addDialog" center @close="closeDialog" :close-on-click-modal="false">
       <el-table :data="resultList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
-                max-height="700px">
+                max-height="700px" @selection-change="handleSelectionChange">
+        <el-table-column label="勾选" prop="id" align="center" type="selection">
+        </el-table-column>
         <el-table-column label="产品信息" align="center" width="200px" fixed="left">
           <template slot-scope="scope">
             <div style="display: flex;align-items: center">
@@ -257,6 +259,7 @@
             <span v-if="scope.row.status==='失败'" style="color: red;">{{ scope.row.status }}</span>
           </template>
         </el-table-column>
+
         <el-table-column label="原因" prop="reason" align="center" min-width="180px">
           <template slot-scope="scope">
             <span v-if="scope.row.status==='成功'" style="color: green;">{{ scope.row.reason }}</span>
@@ -267,7 +270,7 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="addDialog=false">关 闭</el-button>
         <el-button type="primary" @click="$router.back()">返回订单列表</el-button>
-        <el-button type="primary" @click="save()">打印</el-button>
+        <el-button type="primary" @click="print()">打印</el-button>
       </span>
     </el-dialog>
     <div
@@ -281,17 +284,26 @@
         </div>
       </div>
     </div>
-  </div>
 
+    <vue-easy-print ref="listPrint">
+      <div v-html="item.printTemplate" v-for="(item,index) in printList" style="page-break-after:always">
+      </div>
+    </vue-easy-print>
+  </div>
 </template>
 <script>
+import vueEasyPrint from "vue-easy-print"
 import printTemplate from "@/utils/printTemplate";
 import expType from "@/utils/expType";
 import area from "@/utils/area3.js"
 
 export default {
+  components: {
+    vueEasyPrint
+  },
   data() {
     return {
+      printList: [],
       resultList: [],
       reqFlag: false,
       interFaceType: "",
@@ -420,7 +432,22 @@ export default {
   },
 
   methods: {
-    goBack(){
+    print() {
+      if (this.printList.length === 0) {
+        this.$message.warning("请至少勾选一个订单进行打印")
+        return;
+      }
+      this.$nextTick(() => {
+        this.$refs.listPrint.print();
+      })
+    },
+
+    handleSelectionChange(e) {
+      //过滤下单失败的订单
+      this.printList = e.filter(item => item.status === "成功")
+      console.log("面单:",this.printList)
+    },
+    goBack() {
       this.$router.push('/order/bulkCenter')
     },
     batchPrintTicket() {
@@ -503,9 +530,9 @@ export default {
           this.addFrom.sendInfo.phone = this.addFrom.phone
           this.addFrom.sendInfo.name = this.addFrom.name
           this.addFrom.orderList = this.orderList
-          if(this.addFrom.isNotice==="0"){
-            this.addFrom.startTime=this.$moment(this.addFrom.noticeTime[0]).format('Y-MM-DD HH:mm:ss');
-            this.addFrom.endTime=this.$moment(this.addFrom.noticeTime[1]).format('Y-MM-DD HH:mm:ss');
+          if (this.addFrom.isNotice === "0") {
+            this.addFrom.startTime = this.$moment(this.addFrom.noticeTime[0]).format('Y-MM-DD HH:mm:ss');
+            this.addFrom.endTime = this.$moment(this.addFrom.noticeTime[1]).format('Y-MM-DD HH:mm:ss');
           }
           console.log("提交参数:", this.addFrom)
           this.reqFlag = true
@@ -689,8 +716,8 @@ export default {
     },
     getTemplate(id) {
       var obj = this.webPoints.find(item => item.id === id)
-      console.log("obj:",obj)
-      this.addFrom.courierCompany=obj.courierCompany
+      console.log("obj:", obj)
+      this.addFrom.courierCompany = obj.courierCompany
       //根据快递公司名字获取模板列表
       this.templates = []
       this.expTypes = []
@@ -867,5 +894,21 @@ export default {
 
 .primarys {
   color: rgb(0, 155, 216);
+}
+@media print {
+  /* 隐藏页眉 */
+  @page {
+    margin-top: 0;
+  }
+
+  /* 隐藏页脚 */
+  @page {
+    margin-bottom: 0;
+  }
+
+  /* 或者，完全禁用页眉和页脚 */
+  @page {
+    margin: 0;
+  }
 }
 </style>
