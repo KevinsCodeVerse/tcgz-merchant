@@ -485,12 +485,13 @@ export default {
           return;
         }
         if (this.addFrom.isNotice === "0") {
-          if (this.addFrom.noticeTime.length < 2) {
+          if (!this.addFrom.noticeTime||this.addFrom.noticeTime.length < 2) {
             this.notifySplicing(1, "", "预约上门取件时间范围未填写")
+            return;
           }
-          return;
         }
         //校验订单参数
+        console.log("开始校验订单参数")
         for (const order of this.orderList) {
           if (!order.consignee) {
             this.notifySplicing(2, order.id, "收件人姓名未填写")

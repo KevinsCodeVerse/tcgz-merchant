@@ -1,11 +1,11 @@
 @font-face {
   font-family: "icon";
-  src: url('icon.eot?t=1715149117138'); /* IE9*/
-  src: url('icon.eot?t=1715149117138#iefix') format('embedded-opentype'), /* IE6-IE8 */
-  url("icon.woff2?t=1715149117138") format("woff2"),
-  url("icon.woff?t=1715149117138") format("woff"),
-  url('icon.ttf?t=1715149117138') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+*/
-  url('icon.svg?t=1715149117138#icon') format('svg'); /* iOS 4.1- */
+  src: url('icon.eot?t=1715155461197'); /* IE9*/
+  src: url('icon.eot?t=1715155461197#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url("icon.woff2?t=1715155461197") format("woff2"),
+  url("icon.woff?t=1715155461197") format("woff"),
+  url('icon.ttf?t=1715155461197') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+*/
+  url('icon.svg?t=1715155461197#icon') format('svg'); /* iOS 4.1- */
 }
 
 [class^="icon-"], [class*=" icon-"] {
