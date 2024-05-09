@@ -13,6 +13,7 @@
                   :key="item.id"
                   :label="item.companyName+'('+item.webPointName+')'"
                   :value="item.id"
+                  :disabled="item.status!=='1'"
               >
               </el-option>
             </el-select>

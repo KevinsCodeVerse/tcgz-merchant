@@ -4,6 +4,11 @@
     <el-button type="success" @click="openAddress">设置默认发货地址</el-button>
     <el-table :data="list" v-loading="loading" stripe fixed="right">
       <el-table-column label="网点名称" prop="webPointName" align="center" width="200px"></el-table-column>
+      <el-table-column label="状态" align="center" >
+        <template slot-scope="scope">
+          {{ scope.row.status===0 ? "审核中":scope.row.status===1?"正常":"审核未通过"}}
+        </template>
+      </el-table-column>
       <el-table-column label="快递公司编码" prop="courierCompany" align="center" min-width="180px">
       </el-table-column>
       <el-table-column label="快递公司名称" prop="companyName" align="center"></el-table-column>
@@ -36,6 +41,11 @@
       <el-table-column label="创建时间" align="center">
         <template slot-scope="scope">
           {{ $moment(scope.row.createTime).format('Y-MM-DD HH:mm:ss') }}
+        </template>
+      </el-table-column>
+      <el-table-column label="备注" align="center" prop="remark">
+        <template slot-scope="scope">
+         <span :style="scope.row.status===2?'color: red':''">{{scope.row.remark}}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="200px">
