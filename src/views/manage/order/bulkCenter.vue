@@ -226,8 +226,8 @@
       </span>
     </el-dialog>
     <vue-easy-print ref="listPrint">
-      <div v-html="returnedHtml"  v-for="(item_cm,index_cm) in 2" style="page-break-after:always">
-        </div>
+      <div v-html="returnedHtml" v-for="(item_cm,index_cm) in 2" style="page-break-after:always">
+      </div>
     </vue-easy-print>
   </div>
 </template>
@@ -450,6 +450,29 @@ export default {
       });
     },
     manuallyCancelOrder(id) {
+      this.$confirm('确定取消电子面单吗, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$request.post({
+          url: '/mt/order/cancelPrintTicket',
+          params: {orderId: id},
+          success: (result) => {
+            this.$message.success(result)
+          },
+          catch: (e) => {
+            this.$confirm('线上取消电子面单失败，如需取消请先点击确定手动取消，然后联系线下网点工作人员取消面单?', '提示', {
+              confirmButtonText: '确定',
+              type: 'warning'
+            }).then(() => {
+            })
+          },
+          finally: (e) => {
+
+          }
+        });
+      })
 
     },
     getKdnType(type) {
