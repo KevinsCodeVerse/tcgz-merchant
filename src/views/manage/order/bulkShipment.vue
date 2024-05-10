@@ -13,10 +13,10 @@
                   :key="item.id"
                   :label="item.companyName+'('+item.webPointName+')'"
                   :value="item.id"
-                  :disabled="item.status!=='1'"
               >
               </el-option>
             </el-select>
+            <span style="color: red" v-if="addFrom.courierCompany==='ZTO'">请联系管理员审核网点，电话:17710346133</span>
           </el-form-item>
           <el-form-item label="是否打印" prop="webPointName">
             <el-select v-model="addFrom.hasPrint" placeholder="请选择" size="mini" @change="changePrint">

@@ -359,118 +359,142 @@ export default {
     ],
     "京东快递": [
         {
-            "value": "1",
-            "label": "特惠送"
+            "value": "2",
+            "label": "京东标快"
         },
         {
-            "value": "2",
-            "label": "特快送"
+            "value": "3",
+            "label": "京东特快"
         },
         {
             "value": "4",
-            "label": "城际闪送"
+            "label": "特瞬送城际"
         },
         {
             "value": "5",
-            "label": "同城当日达"
-        },
-        {
-            "value": "6",
-            "label": "次晨达"
-        },
-        {
-            "value": "8",
-            "label": "生鲜专送"
-        },
-        {
-            "value": "16",
-            "label": "生鲜特快"
-        },
-        {
-            "value": "17",
             "label": "生鲜特惠"
         },
         {
-            "value": "20",
+            "value": "6",
+            "label": "生鲜特快"
+        },
+        {
+            "value": "7",
             "label": "函速达"
         },
         {
-            "value": "21",
-            "label": "特惠包裹"
+            "value": "8",
+            "label": "特惠包惠"
         },
         {
-            "value": "24",
+            "value": "9",
             "label": "特惠小件"
         },
         {
-            "value": "26",
-            "label": "冷链专送"
+            "value": "10",
+            "label": "特快零担"
         },
         {
-            "value": "29",
-            "label": "医药专送"
+            "value": "11",
+            "label": "特惠重货"
+        },
+        {
+            "value": "12",
+            "label": "特快重货"
+        },
+        {
+            "value": "13",
+            "label": "快运零担"
+        },
+        {
+            "value": "14",
+            "label": "B2B零担"
+        },
+        {
+            "value": "15",
+            "label": "医药大票"
+        },
+        {
+            "value": "16",
+            "label": "医药零担"
+        },
+        {
+            "value": "17",
+            "label": "医冷零担"
+        },
+        {
+            "value": "18",
+            "label": "电商特惠"
         }
     ],
     "京东快运": [
         {
-            "value": "1",
-            "label": "零担"
-        },
-        {
             "value": "2",
-            "label": "整车直达"
+            "label": "京东标快"
         },
         {
             "value": "3",
-            "label": "特惠送"
+            "label": "京东特快"
         },
         {
             "value": "4",
-            "label": "特快送"
+            "label": "特瞬送城际"
         },
         {
             "value": "5",
-            "label": "特惠重货"
+            "label": "生鲜特惠"
         },
         {
             "value": "6",
+            "label": "生鲜特快"
+        },
+        {
+            "value": "7",
+            "label": "函速达"
+        },
+        {
+            "value": "8",
+            "label": "特惠包惠"
+        },
+        {
+            "value": "9",
+            "label": "特惠小件"
+        },
+        {
+            "value": "10",
             "label": "特快零担"
         },
         {
-            "value": "13",
-            "label": "冷链卡班"
+            "value": "11",
+            "label": "特惠重货"
         },
         {
-            "value": "14",
-            "label": "冷链专车"
-        },
-        {
-            "value": "15",
-            "label": "冷链成配"
-        },
-        {
-            "value": "17",
-            "label": "医药零担"
-        },
-        {
-            "value": "18",
-            "label": "医药整车"
-        },
-        {
-            "value": "25",
+            "value": "12",
             "label": "特快重货"
         },
         {
-            "value": "30",
-            "label": "医药大票零担"
+            "value": "13",
+            "label": "快运零担"
         },
         {
-            "value": "31",
-            "label": "冷链小票"
+            "value": "14",
+            "label": "B2B零担"
         },
         {
-            "value": "39",
+            "value": "15",
+            "label": "医药大票"
+        },
+        {
+            "value": "16",
+            "label": "医药零担"
+        },
+        {
+            "value": "17",
             "label": "医冷零担"
+        },
+        {
+            "value": "18",
+            "label": "电商特惠"
         }
     ],
     "邮政快递包裹": [

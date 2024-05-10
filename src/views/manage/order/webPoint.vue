@@ -32,6 +32,11 @@
           {{ scope.row.sendSite ? scope.row.sendSite : "--" }}
         </template>
       </el-table-column>
+      <el-table-column label="补充信息" prop="sendStaff" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.sendStaff ? scope.row.sendStaff : "--" }}
+        </template>
+      </el-table-column>
       <el-table-column label="是否默认" prop="default" align="center" width="200px">
         <template slot-scope="scope">
           <el-tag type="success" v-if="scope.row.hasDefault===1">默认</el-tag>
@@ -70,10 +75,15 @@
     </el-pagination>
 
     <!-- 弹框 -->
-    <el-dialog title="网点信息" :visible.sync="addDialog" width="520px" center @close="closeDialog" :close-on-click-modal="false">
+    <el-dialog title="网点信息" :visible.sync="addDialog"  center @close="closeDialog" :close-on-click-modal="false">
+      <div style="color: red;margin: 20px;font-size: 12px">
+        如果尚未拥有账号，请联系合作的快递网点负责人申请，
+        这是部分<a target="_blank" href="https://www.yuque.com/kdnjishuzhichi/rg4owd">快递公司的电子面单账号申请教程</a>，仅供参考
+        请以您所合作的网点系统为准。
+      </div>
       <el-form :model="addFrom" :rules="rule" ref="addFrom" label-width="120px">
         <el-form-item label="网点名称" prop="webPointName">
-          <el-input placeholder="请输入线下网点名称" v-model="addFrom.webPointName"></el-input>
+          <el-input placeholder="请输入线下网点名称" v-model="addFrom.webPointName" size="mini"></el-input>
         </el-form-item>
         <el-form-item label="快递公司名称" prop="companyName">
           <el-autocomplete
@@ -81,10 +91,14 @@
               :fetch-suggestions="querySearchAsync"
               placeholder="输入快递公司名称搜索"
               @select="handleSelect"
+               size="mini"
           ></el-autocomplete>
+          <a href="https://cloud.jdl.com/admin/#/appManager" v-if="addFrom.courierCompany==='JD'||addFrom.courierCompany==='JDKY'" target="_blank">
+            仅支持京东开放平台</a>
         </el-form-item>
+
         <el-form-item label="快递公司编码" prop="courierCompany">
-          <el-input placeholder="" v-model="addFrom.courierCompany" disabled></el-input>
+          <el-input placeholder="" v-model="addFrom.courierCompany" disabled size="mini"></el-input>
         </el-form-item>
         <el-form-item label="是否默认网点" prop="hasDefault">
           <el-switch
@@ -97,26 +111,29 @@
           </el-switch>
         </el-form-item>
         <div style="color: red;margin: 20px;font-size: 12px">
-          月结号、客户编码、客户密码、网点编码请根据实际网点给予的信息填写，至少填写一个
+          如果不清楚下面内容该填写哪个，请参考<a target="_blank" href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/hrfw43">电子面单账号对照表</a>填写
         </div>
-        <el-form-item label="月结号">
+        <el-form-item label="月结号(MonthCode)" label-width="180px">
           <el-tooltip class="item" effect="dark" content="快递网点提供的月结账号，如顺丰的月结号" placement="top-start">
-            <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode"></el-input>
+            <el-input placeholder="请根据实际网点提供的月结号填写(没有可不填)" v-model="addFrom.monthCode" size="mini"></el-input>
           </el-tooltip>
 
         </el-form-item>
-        <el-form-item label="客户编码">
+        <el-form-item label="客户编码(CustomerName)" label-width="190px">
           <el-tooltip class="item" effect="dark" content="快递网点提供，又称电子面单账号，客户账号，" placement="top-start">
-            <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName"></el-input>
+            <el-input placeholder="请根据实际网点提供的客户编码填写(没有可不填)" v-model="addFrom.customerName" size="mini"></el-input>
           </el-tooltip>
         </el-form-item>
-        <el-form-item label="客户密码">
+        <el-form-item label="客户密码(CustomerPwd)" label-width="180px">
           <el-tooltip class="item" effect="dark" content="快递网点提供，又称打单密钥" placement="top-start">
-            <el-input placeholder="请根据实际网点提供的客户密码填写(没有可不填)" v-model="addFrom.customerPwd"></el-input>
+            <el-input placeholder="请根据实际网点提供的客户密码填写(没有可不填)" v-model="addFrom.customerPwd" size="mini"></el-input>
           </el-tooltip>
         </el-form-item>
-        <el-form-item label="网点编码">
-          <el-input placeholder="请根据实际网点提供的网点编码填写(没有可不填)" v-model="addFrom.sendSite"></el-input>
+        <el-form-item label="网点编码(SendSite)" label-width="180px">
+          <el-input placeholder="请根据实际网点提供的网点编码填写(没有可不填)" v-model="addFrom.sendSite" size="mini"></el-input>
+        </el-form-item>
+        <el-form-item label="补充信息(SendStaff)" label-width="180px">
+          <el-input placeholder="请根据实际网点提供的信息填写(没有可不填)" v-model="addFrom.sendStaff" size="mini"></el-input>
         </el-form-item>
 
       </el-form>
@@ -158,6 +175,7 @@ import area from "@/utils/area3.js"
 export default {
   data() {
     return {
+      labelPosition:"top",
       addressFlag: false,
       options: this.transformAreaToOptions(area),
       addressDialog: false,
@@ -189,7 +207,8 @@ export default {
         monthCode: "",
         customerName: "",
         customerPwd: "",
-        sendSite: ""
+        sendSite: "",
+        sendStaff:""
       },
       //订单发货
       deliveryData: {
@@ -404,9 +423,9 @@ export default {
       this.addFrom.courierCompany = item.courierCompany
     },
     querySearchAsync(queryString, cb) {
-      if (!queryString) {
-        queryString = "顺丰"
-      }
+      // if (!queryString) {
+      //   queryString = "顺丰"
+      // }
       this.$request.post({
         url: '/merchant/public/queryLikeByName',
         params: {keyword: queryString},
@@ -458,7 +477,8 @@ export default {
         customerName: "",
         customerPwd: "",
         sendSite: "",
-        hasDefault:0
+        hasDefault:0,
+        sendStaff:""
       }
       this.addressFrom = {
         address: "",
