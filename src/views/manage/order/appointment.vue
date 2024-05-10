@@ -272,7 +272,7 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="addDialog=false">关 闭</el-button>
         <el-button type="primary" @click="$router.push('/order/bulkCenter')">返回订单列表</el-button>
-        <el-button type="primary" @click="save()">打印</el-button>
+<!--        <el-button type="primary" @click="save()">打印</el-button>-->
       </span>
     </el-dialog>
     <div
