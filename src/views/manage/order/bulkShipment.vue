@@ -41,9 +41,9 @@
                 </el-select>
               </el-form-item>
             </div>
-            <div
-                style="margin: 10px 0px 0px 10px"><a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/vpptucr1q5ahcxa7"
-                                                     target="_blank">模板规格样式参考
+            <div v-if="showTeA"
+                 style="margin: 10px 0px 0px 10px"><a href="https://www.yuque.com/kdnjishuzhichi/dfcrg1/vpptucr1q5ahcxa7"
+                                                      target="_blank">模板规格样式参考
             </a></div>
           </div>
           <el-form-item label="快递业务类型" prop="expType">
@@ -234,8 +234,8 @@
     <!-- 弹框 -->
     <el-dialog title="发货结果通知" :visible.sync="addDialog" center @close="closeDialog" :close-on-click-modal="false">
       <el-table :data="resultList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
-                max-height="700px" @selection-change="handleSelectionChange">
-        <el-table-column label="勾选" prop="id" align="center" type="selection">
+                max-height="700px" @selection-change="handleSelectionChange" ref="resultRef">
+        <el-table-column align="center" type="selection" disabled>
         </el-table-column>
         <el-table-column label="产品信息" align="center" width="200px" fixed="left">
           <template slot-scope="scope">
@@ -304,6 +304,7 @@ export default {
   },
   data() {
     return {
+      showTeA: false,
       printList: [],
       resultList: [],
       reqFlag: false,
@@ -336,7 +337,7 @@ export default {
       total: 0,
       loading: false,
       addFrom: {
-        hasPrint: 0,
+        hasPrint: 1,
         webPointId: "",
         expType: "",
         jdExpType: "",
@@ -434,19 +435,34 @@ export default {
 
   methods: {
     print() {
+
       if (this.printList.length === 0) {
         this.$message.warning("请至少勾选一个订单进行打印")
         return;
       }
-      this.$nextTick(() => {
-        this.$refs.listPrint.print();
+      this.$confirm('确定进行面单打印吗，如果预览为空，则说明该面单不支持打印, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$nextTick(() => {
+          this.$refs.listPrint.print();
+        })
       })
+
+      // console.log(this.$refs.resultRef);
     },
 
     handleSelectionChange(e) {
+      this.resultList.forEach(item => {
+        if (item.status === "失败") {
+          this.$message.warning("下单失败无法勾选打印，请查看失败原因")
+          this.$refs.resultRef.toggleRowSelection(item, false);
+        }
+      });
       //过滤下单失败的订单
       this.printList = e.filter(item => item.status === "成功")
-      console.log("面单:",this.printList)
+      console.log("面单:", this.printList)
     },
     goBack() {
       this.$router.push('/order/bulkCenter')
@@ -486,7 +502,7 @@ export default {
           return;
         }
         if (this.addFrom.isNotice === "0") {
-          if (!this.addFrom.noticeTime||this.addFrom.noticeTime.length < 2) {
+          if (!this.addFrom.noticeTime || this.addFrom.noticeTime.length < 2) {
             this.notifySplicing(1, "", "预约上门取件时间范围未填写")
             return;
           }
@@ -698,7 +714,10 @@ export default {
           this.webPoints = result
           //回显默认网点
           if (this.webPoints.length === 0) {
-            this.$message.error("电子面单打单需要绑定网点，请先移步至订单管理-网点管理中添加网点")
+            this.$message.error("请先绑定快递网点再进行电子面单下单操作。一秒后跳转 物流模块-网点管理页面")
+            setTimeout(() => {
+              this.$router.push("/order/webPoint")
+            }, 1000)
           } else {
             this.webPoints.forEach(item => {
               if (item.hasDefault === 1) {
@@ -732,6 +751,9 @@ export default {
       if (this.templates.length === 0) {
         this.templates = [{"value": "0", "label": "默认模板"}]
         this.addFrom.templateSize = "默认模板"
+        this.showTeA = false;
+      } else {
+        this.showTeA = true;
       }
 
       for (let expTypeKey in expType) {
@@ -755,6 +777,7 @@ export default {
         this.addFrom.expName = obj.expName
         this.addFrom.expType = "1"
       }
+
     },
     remove(id) {
       this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
@@ -897,6 +920,7 @@ export default {
 .primarys {
   color: rgb(0, 155, 216);
 }
+
 @media print {
   /* 隐藏页眉 */
   @page {

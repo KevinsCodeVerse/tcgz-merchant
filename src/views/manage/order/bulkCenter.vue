@@ -167,7 +167,8 @@
 
 
     <!-- 批量发货弹框 -->
-    <el-dialog title="批量发货" :visible.sync="deliveryShow" center @close="closeDialog" :close-on-click-modal="false" v-loading="batchDevFlag">
+    <el-dialog title="批量发货" :visible.sync="deliveryShow" center @close="closeDialog" :close-on-click-modal="false"
+               v-loading="batchDevFlag" width="1800px">
       <el-table :data="orderList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
                 max-height="700px">
         <el-table-column label="产品信息" align="center" width="200px">
@@ -213,7 +214,7 @@
             </el-input>
           </template>
         </el-table-column>
-        <el-table-column label="发货结果" prop="reason" align="center" min-width="180px">
+        <el-table-column label="发货结果" prop="reason" align="center" width="300px">
           <template slot-scope="scope">
             <span v-if="scope.row.status==='成功'" style="color: green;">{{ scope.row.reason }}</span>
             <span v-if="scope.row.status==='失败'" style="color: red;">{{ scope.row.reason }}</span>
@@ -459,9 +460,11 @@ export default {
           url: '/mt/order/cancelPrintTicket',
           params: {orderId: id},
           success: (result) => {
+            console.log("4566587941")
             this.$message.success(result)
           },
           catch: (e) => {
+            console.log("123123")
             this.$confirm('线上取消电子面单失败，如需取消请先点击确定手动取消，然后联系线下网点工作人员取消面单?', '提示', {
               confirmButtonText: '确定',
               type: 'warning'
@@ -469,7 +472,7 @@ export default {
             })
           },
           finally: (e) => {
-
+            console.log(e)
           }
         });
       })

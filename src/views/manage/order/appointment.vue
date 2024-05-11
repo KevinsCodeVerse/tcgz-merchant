@@ -768,9 +768,9 @@ export default {
       console.log("this.addFrom:", this.addFrom)
     },
     querySearchAsync(queryString, cb) {
-      if (!queryString) {
-        queryString = "顺丰"
-      }
+      // if (!queryString) {
+      //   queryString = "顺丰"
+      // }
       this.$request.post({
         url: '/merchant/public/queryLikeByName',
         params: {keyword: queryString},
