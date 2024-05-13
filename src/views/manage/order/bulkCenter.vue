@@ -460,16 +460,33 @@ export default {
           url: '/mt/order/cancelPrintTicket',
           params: {orderId: id},
           success: (result) => {
-            console.log("4566587941")
-            this.$message.success(result)
+            if(result===1){
+              this.$message.success("取消电子面单成功")
+            }else {
+              this.$confirm('线上取消电子面单失败，如需取消请先点击确定手动取消，然后联系线下网点工作人员取消面单?', '提示', {
+                confirmButtonText: '确定',
+                type: 'warning'
+              }).then(() => {
+                this.$request.post({
+                  url: '/mt/order/manuallyCancelThree',
+                  params: {orderId: result},
+                  success: (result) => {
+                    this.$message.success(result)
+                    this.search()
+                  },
+                  catch: (e) => {
+
+                  },
+                  finally: (e) => {
+
+                  }
+                });
+              })
+            }
+
           },
           catch: (e) => {
-            console.log("123123")
-            this.$confirm('线上取消电子面单失败，如需取消请先点击确定手动取消，然后联系线下网点工作人员取消面单?', '提示', {
-              confirmButtonText: '确定',
-              type: 'warning'
-            }).then(() => {
-            })
+
           },
           finally: (e) => {
             console.log(e)
@@ -583,7 +600,7 @@ export default {
           },
           success: (result) => {
             this.$message.success(result)
-            this.search();
+            this.search(1);
           },
           catch: (e) => {
 
