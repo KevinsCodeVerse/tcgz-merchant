@@ -462,6 +462,7 @@ export default {
           success: (result) => {
             if(result===1){
               this.$message.success("取消电子面单成功")
+              this.search()
             }else {
               this.$confirm('线上取消电子面单失败，如需取消请先点击确定手动取消，然后联系线下网点工作人员取消面单?', '提示', {
                 confirmButtonText: '确定',

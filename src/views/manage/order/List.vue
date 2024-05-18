@@ -192,7 +192,7 @@ export default {
         {id: 0, name: '待支付'},
         {id: 1, name: '待使用'},
         {id: 10, name: '待发货'},
-        {id: -3, name: '待揽件'},
+        // {id: -3, name: '待揽件'},
         {id: 11, name: '待收货'},
         {id: 2, name: '待评价'},
         {id: 3, name: '已评价'},
