@@ -75,6 +75,7 @@ export default {
     },
     watch: {},
     created() {},
+
     mounted() {
         this.getList(1);
     },
@@ -91,7 +92,9 @@ export default {
             this.params.isCount = true;
             if (this.selectData && this.selectData.length) {
                 this.params.startTime = this.$moment(this.selectData[0]).format('Y-MM-DD HH:mm:ss');
-                this.params.endTime = this.$moment(this.selectData[1]).add(1, 'days').format('Y-MM-DD HH:mm:ss');
+                this.params.endTime = this.$moment(this.selectData[1])
+                    .add(1, 'days')
+                    .format('Y-MM-DD HH:mm:ss');
             } else {
                 this.params.startTime = '';
                 this.params.endTime = '';
@@ -105,7 +108,7 @@ export default {
             this.$request.post({
                 url: 'mt/shop/list',
                 params: this.params,
-                success: (result) => {
+                success: result => {
                     this.list = result.list;
                     if (this.params.isCount) {
                         this.params.isCount = false;
@@ -139,7 +142,7 @@ export default {
                         id,
                         status
                     },
-                    success: (result) => {
+                    success: result => {
                         this.$message.success('操作成功');
                         this.getList(this.params.pageNo);
                     },
@@ -148,16 +151,15 @@ export default {
                     }
                 });
             });
-        },
+        }
     },
 
     beforeDestroy() {}
 };
 </script>
-   
-<style>
-</style>
-   
+
+<style></style>
+
 <style lang="scss" scoped>
 .page {
     text-align: right;
