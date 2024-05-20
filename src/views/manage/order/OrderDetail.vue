@@ -176,6 +176,19 @@
                 </div>
             </div>
         </div>
+
+      <div class="card">
+        <p>
+          <b>物流轨迹</b>
+        </p>
+        <div>
+          <!-- <div class="d_item">
+              <span>卖家账号：</span>
+              <div>{{ merchant.account }}</div>
+          </div> -->
+          <iframe :src="externalUrl" frameborder="0" width="100%" height="500"></iframe>
+        </div>
+      </div>
     </div>
 </template>
 
