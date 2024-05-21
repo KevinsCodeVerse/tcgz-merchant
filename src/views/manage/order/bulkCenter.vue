@@ -168,7 +168,7 @@
 
     <!-- 批量发货弹框 -->
     <el-dialog title="批量发货" :visible.sync="deliveryShow" center @close="closeDialog" :close-on-click-modal="false"
-               v-loading="batchDevFlag" width="1800px">
+               v-loading="batchDevFlag" width="1500px">
       <el-table :data="orderList" v-loading="loading" stripe style="max-width: 1700px; overflow-x: auto;" :row-height="10"
                 max-height="700px">
         <el-table-column label="产品信息" align="center" width="200px">
@@ -460,10 +460,10 @@ export default {
           url: '/mt/order/cancelPrintTicket',
           params: {orderId: id},
           success: (result) => {
-            if(result===1){
+            if (result === 1) {
               this.$message.success("取消电子面单成功")
               this.search()
-            }else {
+            } else {
               this.$confirm('线上取消电子面单失败，如需取消请先点击确定手动取消，然后联系线下网点工作人员取消面单?', '提示', {
                 confirmButtonText: '确定',
                 type: 'warning'
@@ -533,7 +533,9 @@ export default {
         this.batchDevFlag = true;
         this.$request.post({
           url: '/mt/order/batchDelivery',
-          params: {infos: JSON.stringify(this.orderList)},
+          params: {
+            infos: JSON.stringify(this.orderList)
+          },
           success: (result) => {
             // this.$message.success(result)
             this.orderList = result
@@ -607,7 +609,6 @@ export default {
 
           },
           finally: (e) => {
-
           }
         });
       })
@@ -640,10 +641,9 @@ export default {
     },
     // 重置
     reset() {
-
-      this.$nextTick(() => {
-        this.$refs.listPrint.print();
-      })
+      // this.$nextTick(() => {
+      //   this.$refs.listPrint.print();
+      // })
       (this.params = {
         pageNo: 1,
         pageSize: 10,
