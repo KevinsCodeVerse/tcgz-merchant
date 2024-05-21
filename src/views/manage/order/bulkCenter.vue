@@ -537,7 +537,6 @@ export default {
             infos: JSON.stringify(this.orderList)
           },
           success: (result) => {
-            // this.$message.success(result)
             this.orderList = result
           },
           catch: (e) => {
